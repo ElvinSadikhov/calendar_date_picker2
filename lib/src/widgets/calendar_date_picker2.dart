@@ -273,7 +273,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
           onChanged: _handleDayChanged,
           onDisplayedMonthChanged: _handleMonthChanged,
         );
-      case DatePickerMode.year:
+      case DatePickerMode.year: //! for year grid view
         return Padding(
           padding: EdgeInsets.only(
               top: widget.config.controlsHeight ?? _subHeaderHeight),
@@ -301,17 +301,17 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
           child: _buildPicker(),
         ),
         // Put the mode toggle button on top so that it won't be covered up by the _MonthPicker
-        _DatePickerModeToggleButton(
-          config: widget.config,
-          mode: _mode,
-          title: _localizations.formatMonthYear(_currentDisplayedMonthDate),
-          onTitlePressed: () {
-            // Toggle the day/year mode.
-            _handleModeChanged(_mode == DatePickerMode.day
-                ? DatePickerMode.year
-                : DatePickerMode.day);
-          },
-        ),
+        // _DatePickerModeToggleButton( //! year picker button
+        //   config: widget.config,
+        //   mode: _mode,
+        //   title: _localizations.formatMonthYear(_currentDisplayedMonthDate),
+        //   onTitlePressed: () {
+        //     // Toggle the day/year mode.
+        //     _handleModeChanged(_mode == DatePickerMode.day
+        //         ? DatePickerMode.year
+        //         : DatePickerMode.day);
+        //   },
+        // ),
       ],
     );
   }
@@ -550,6 +550,25 @@ class _MonthPickerState extends State<_MonthPicker> {
     widget.onChanged(selectedDate);
   }
 
+  void _handlePastOrFutureDateSelected(DateTime selectedDate, bool isPast) {
+    Duration monthScrollDuration = _monthScrollDuration;
+    Curve curve = Curves.ease;
+
+    if(isPast) {
+      _pageController.previousPage(
+        duration: monthScrollDuration, 
+        curve: curve
+      );
+    } else {
+      _pageController.nextPage(
+        duration: monthScrollDuration,
+        curve: curve,
+      );
+    }
+
+    _focusedDay = selectedDate;
+  }
+
   void _handleMonthPageChanged(int monthPage) {
     setState(() {
       final DateTime monthDate =
@@ -595,7 +614,7 @@ class _MonthPickerState extends State<_MonthPicker> {
   }
 
   /// Navigate to the next month.
-  void _handleNextMonth() {
+  void _handleNextMonth() { //!
     if (!_isDisplayingLastMonth) {
       _pageController.nextPage(
         duration: _monthScrollDuration,
@@ -744,8 +763,10 @@ class _MonthPickerState extends State<_MonthPicker> {
       selectedDates: (widget.selectedDates..removeWhere((d) => d == null))
           .cast<DateTime>(),
       onChanged: _handleDateSelected,
+      onPastOrFutureDateSelected: _handlePastOrFutureDateSelected,
       config: widget.config,
       displayedMonth: month,
+      pageController: _pageController
     );
   }
 
@@ -757,34 +778,66 @@ class _MonthPickerState extends State<_MonthPicker> {
     return Semantics(
       child: Column(
         children: <Widget>[
-          Container(
-            padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
-            height: (widget.config.controlsHeight ?? _subHeaderHeight),
-            child: Row(
-              children: <Widget>[
-                const Spacer(),
-                IconButton(
-                  icon: widget.config.lastMonthIcon ??
-                      const Icon(Icons.chevron_left),
-                  color: controlColor,
-                  tooltip: _isDisplayingFirstMonth
-                      ? null
-                      : _localizations.previousMonthTooltip,
-                  onPressed:
-                      _isDisplayingFirstMonth ? null : _handlePreviousMonth,
+          Container(  //! for month toggle
+            padding: EdgeInsets.zero, // const EdgeInsetsDirectional.only(start: 16, end: 4),
+            height: 40,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 5,
+                    color: Colors.black.withOpacity(0.05)
+                  )
+                ]
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: _isDisplayingFirstMonth ? null : _handlePreviousMonth,
+                      behavior: HitTestBehavior.translucent,
+                      child: widget.config.nextMonthIcon ?? const Icon(Icons.chevron_left)
+                    ),
+                    Text(_localizations.formatMonthYear(_currentMonth), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0))),
+                    GestureDetector(
+                      onTap: _isDisplayingLastMonth ? null : _handleNextMonth,
+                      behavior: HitTestBehavior.translucent,
+                      child: widget.config.nextMonthIcon ?? const Icon(Icons.chevron_right)
+                    )
+                  ],
                 ),
-                IconButton(
-                  icon: widget.config.nextMonthIcon ??
-                      const Icon(Icons.chevron_right),
-                  color: controlColor,
-                  tooltip: _isDisplayingLastMonth
-                      ? null
-                      : _localizations.nextMonthTooltip,
-                  onPressed: _isDisplayingLastMonth ? null : _handleNextMonth,
-                ),
-              ],
-            ),
+              ),
+            )
+            // Row(
+            //   children: <Widget>[
+            //     const Spacer(),
+            //     IconButton(
+            //       icon: widget.config.lastMonthIcon ??
+            //           const Icon(Icons.chevron_left),
+            //       color: controlColor,
+            //       tooltip: _isDisplayingFirstMonth
+            //           ? null
+            //           : _localizations.previousMonthTooltip,
+            //       onPressed:
+            //           _isDisplayingFirstMonth ? null : _handlePreviousMonth,
+            //     ),
+            //     IconButton(
+            //       icon: widget.config.nextMonthIcon ??
+            //           const Icon(Icons.chevron_right),
+            //       color: controlColor,
+            //       tooltip: _isDisplayingLastMonth
+            //           ? null
+            //           : _localizations.nextMonthTooltip,
+            //       onPressed: _isDisplayingLastMonth ? null : _handleNextMonth,
+            //     ),
+            //   ],
+            // ),
           ),
+          const SizedBox(height: 22), //! padding
           Expanded(
             child: FocusableActionDetector(
               shortcuts: _shortcutMap,
@@ -847,6 +900,8 @@ class _DayPicker extends StatefulWidget {
     required this.displayedMonth,
     required this.selectedDates,
     required this.onChanged,
+    required this.onPastOrFutureDateSelected,
+    this.pageController,
     Key? key,
   }) : super(key: key);
 
@@ -861,8 +916,13 @@ class _DayPicker extends StatefulWidget {
   /// Called when the user picks a day.
   final ValueChanged<DateTime> onChanged;
 
+  /// Called when the user picks a day from past or next month.
+  final Function(DateTime dateTime, bool isPast) onPastOrFutureDateSelected;
+
   /// The month whose days are displayed by this picker.
   final DateTime displayedMonth;
+
+  final PageController? pageController;
 
   @override
   _DayPickerState createState() => _DayPickerState();
@@ -958,6 +1018,7 @@ class _DayPickerState extends State<_DayPicker> {
     final Color enabledDayColor = colorScheme.onSurface.withOpacity(0.87);
     final Color disabledDayColor = colorScheme.onSurface.withOpacity(0.38);
     final Color selectedDayColor = colorScheme.onPrimary;
+    final Color pastOrFutureDayColor = colorScheme.onPrimary;
     final Color selectedDayBackground = colorScheme.primary;
     final Color todayColor = colorScheme.primary;
 
@@ -971,25 +1032,57 @@ class _DayPickerState extends State<_DayPicker> {
     final List<Widget> dayItems = _dayHeaders(headerStyle, localizations);
     // 1-based day of month, e.g. 1-31 for January, and 1-29 for February on
     // a leap year.
+
     int day = -dayOffset;
-    while (day < daysInMonth) {
+    // int day = 0;
+
+    // while (day < daysInMonth) { //?
+    while ((day + dayOffset) < (daysInMonth + dayOffset) + ((daysInMonth + dayOffset) % 7 == 0 ? 0 : 7 - (daysInMonth + dayOffset) % 7) ) { //?
+      // print(day.toString() + " " + dayOffset.toString() + " " + daysInMonth.toString());
+
       day++;
-      if (day < 1) {
-        dayItems.add(Container());
-      } else {
-        final DateTime dayToBuild = DateTime(year, month, day);
-        final bool isDisabled = dayToBuild.isAfter(widget.config.lastDate) ||
+
+      // if (day < 1) {
+      //   dayItems.add(Container());
+      // } else {
+        
+        DateTime dayToBuild;
+        bool isDisabled;
+        bool isSelectedDay;
+        bool isToday;
+        bool isFromPastOrFuture = false;
+
+        if(day < 1) {
+          dayToBuild = DateTime(year, month - 1 > 0 ? month - 1 : 12, DateUtils.getDaysInMonth(year, month - 1 > 0 ? month - 1 : 12) - day);
+          isDisabled = false;
+          isSelectedDay = false;
+          isToday = false;
+          isFromPastOrFuture = true;
+        } else if (day > daysInMonth) {
+          dayToBuild = DateTime(year, month + 1 <= 12 ? month + 1 : 1, day - daysInMonth);
+          isDisabled = false;
+          isSelectedDay = false;
+          isToday = false;
+          isFromPastOrFuture = true;
+        } 
+
+        dayToBuild = DateTime(year, month, day);
+        isDisabled = dayToBuild.isAfter(widget.config.lastDate) ||
             dayToBuild.isBefore(widget.config.firstDate) ||
             !(widget.config.selectableDayPredicate?.call(dayToBuild) ?? true);
-        final bool isSelectedDay =
+        isSelectedDay =
             widget.selectedDates.any((d) => DateUtils.isSameDay(d, dayToBuild));
 
-        final bool isToday =
+        isToday =
             DateUtils.isSameDay(widget.config.currentDate, dayToBuild);
 
         BoxDecoration? decoration;
         Color dayColor = enabledDayColor;
-        if (isSelectedDay) {
+
+        
+        if(isFromPastOrFuture) {
+          dayColor = pastOrFutureDayColor;
+        } else if (isSelectedDay) {
           // The selected day gets a circle background highlight, and a
           // contrasting text color.
           dayColor = selectedDayColor;
@@ -997,6 +1090,7 @@ class _DayPickerState extends State<_DayPicker> {
             borderRadius: widget.config.dayBorderRadius,
             color: widget.config.selectedDayHighlightColor ??
                 selectedDayBackground,
+            boxShadow: widget.config.selectedDayBoxShadows,
             shape: widget.config.dayBorderRadius != null
                 ? BoxShape.rectangle
                 : BoxShape.circle,
@@ -1006,7 +1100,7 @@ class _DayPickerState extends State<_DayPicker> {
         } else if (isToday) {
           // The current day gets a different text color and a circle stroke
           // border.
-          dayColor = widget.config.selectedDayHighlightColor ?? todayColor;
+          dayColor = widget.config.todayHighlightColor ?? todayColor;
           decoration = BoxDecoration(
             borderRadius: widget.config.dayBorderRadius,
             border: Border.all(color: dayColor),
@@ -1015,6 +1109,9 @@ class _DayPickerState extends State<_DayPicker> {
                 : BoxShape.circle,
           );
         }
+
+
+
 
         var customDayTextStyle =
             widget.config.dayTextStylePredicate?.call(date: dayToBuild) ??
@@ -1038,6 +1135,10 @@ class _DayPickerState extends State<_DayPicker> {
           customDayTextStyle = widget.config.selectedDayTextStyle;
         }
 
+        if (isFromPastOrFuture) {
+          customDayTextStyle = widget.config.pastOrFutureDaysTextStyle;
+        }
+
         final dayTextStyle =
             customDayTextStyle ?? dayStyle.apply(color: dayColor);
 
@@ -1052,7 +1153,7 @@ class _DayPickerState extends State<_DayPicker> {
             _buildDefaultDayWidgetContent(
               decoration,
               localizations,
-              day,
+              dayToBuild.day,
               dayTextStyle,
             );
 
@@ -1121,9 +1222,14 @@ class _DayPickerState extends State<_DayPicker> {
           );
         } else {
           dayWidget = InkResponse(
-            focusNode: _dayFocusNodes[day - 1],
-            onTap: () => widget.onChanged(dayToBuild),
-            radius: _dayPickerRowHeight / 2 + 4,
+            // focusNode: _dayFocusNodes[day - 1],
+            onTap: () {
+              if(isFromPastOrFuture) {
+                widget.onPastOrFutureDateSelected(dayToBuild, dayToBuild.difference(widget.displayedMonth).isNegative);
+              } 
+              widget.onChanged(dayToBuild);
+            },
+            radius: widget.config.splashRadius ?? _dayPickerRowHeight / 2 + 4,
             splashColor: selectedDayBackground.withOpacity(0.38),
             child: Semantics(
               // We want the day of month to be spoken first irrespective of the
@@ -1134,7 +1240,7 @@ class _DayPickerState extends State<_DayPicker> {
               // formatted full date.
               label:
                   '${localizations.formatDecimal(day)}, ${localizations.formatFullDate(dayToBuild)}',
-              selected: isSelectedDay,
+              selected: isSelectedDay || isFromPastOrFuture,
               excludeSemantics: true,
               child: dayWidget,
             ),
@@ -1142,7 +1248,7 @@ class _DayPickerState extends State<_DayPicker> {
         }
 
         dayItems.add(dayWidget);
-      }
+      // }
     }
 
     return Padding(
@@ -1173,6 +1279,8 @@ class _DayPickerState extends State<_DayPicker> {
         AspectRatio(
           aspectRatio: 1,
           child: Container(
+            height: 35,
+            width: 35,
             decoration: decoration,
             child: Center(
               child: Text(

@@ -22,6 +22,7 @@ class CalendarDatePicker2Config {
     DateTime? lastDate,
     DateTime? currentDate,
     DatePickerMode? calendarViewMode,
+    this.splashRadius,
     this.weekdayLabels,
     this.weekdayLabelTextStyle,
     this.firstDayOfWeek,
@@ -32,6 +33,9 @@ class CalendarDatePicker2Config {
     this.dayTextStyle,
     this.selectedDayTextStyle,
     this.selectedDayHighlightColor,
+    this.selectedDayBoxShadows,
+    this.todayHighlightColor,
+    this.pastOrFutureDaysTextStyle,
     this.disabledDayTextStyle,
     this.todayTextStyle,
     this.yearTextStyle,
@@ -47,6 +51,9 @@ class CalendarDatePicker2Config {
         lastDate = lastDate ?? DateTime(DateTime.now().year + 50),
         currentDate = currentDate ?? DateUtils.dateOnly(DateTime.now()),
         calendarViewMode = calendarViewMode ?? DatePickerMode.day;
+
+  /// splash radius
+  final double? splashRadius;
 
   /// The enabled date picker mode
   final CalendarDatePicker2Type calendarType;
@@ -92,11 +99,20 @@ class CalendarDatePicker2Config {
   /// Custom text style for all calendar days
   final TextStyle? dayTextStyle;
 
+  /// The highlight color for days of past or next month
+  final TextStyle? pastOrFutureDaysTextStyle;
+
   /// Custom text style for selected calendar day(s)
   final TextStyle? selectedDayTextStyle;
 
   /// The highlight color for selected day(s)
   final Color? selectedDayHighlightColor;
+
+  /// The box shadows for selected day(s)
+  final List<BoxShadow>? selectedDayBoxShadows;
+
+  /// The highlight color for today
+  final Color? todayHighlightColor;
 
   /// Custom text style for disabled calendar day(s)
   final TextStyle? disabledDayTextStyle;
