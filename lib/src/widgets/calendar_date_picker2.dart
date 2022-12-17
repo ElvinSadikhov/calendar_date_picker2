@@ -2,13 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: unnecessary_this
+
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart' as intl;
 
 const Duration _monthScrollDuration = Duration(milliseconds: 200);
 
@@ -272,19 +277,73 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
           selectedDates: _selectedDates,
           onChanged: _handleDayChanged,
           onDisplayedMonthChanged: _handleMonthChanged,
+          onTopBarTap: () async {
+            BorderRadius borderRadius = BorderRadius.circular(20);
+            String? chosenYear = await showDialog(
+              context: context, 
+              barrierDismissible: false, 
+              barrierLabel: "",
+              barrierColor: Colors.white.withOpacity(0.1),
+              useRootNavigator: true,
+              builder: (context) {
+                return SizedBox(
+                  height: 400,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                    child: AlertDialog(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: borderRadius, side: BorderSide.none),
+                      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                      contentPadding: EdgeInsets.zero,
+                      backgroundColor: Colors.white.withOpacity(0.1),
+                      content: ClipRRect(
+                        borderRadius: borderRadius,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.6),
+                          ),      
+                          child: Padding(
+                            padding: const EdgeInsets.all(40),
+                            child: YearPicker(
+                              config: widget.config,
+                              key: _yearPickerKey,
+                              initialMonth: _currentDisplayedMonthDate,
+                              selectedDates: _selectedDates,
+                              onChanged: _handleYearChanged,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ); 
+            if(chosenYear != null) {
+              _handleYearChanged(
+                DateTime(
+                  int.parse(chosenYear),
+                  _currentDisplayedMonthDate.month,
+                ),
+              );
+              _handleDayChanged(DateTime(int.parse(chosenYear), _selectedDates[0]!.month, _selectedDates[0]!.day));
+            }
+          }
         );
-      case DatePickerMode.year: //! for year grid view
-        return Padding(
-          padding: EdgeInsets.only(
-              top: widget.config.controlsHeight ?? _subHeaderHeight),
-          child: YearPicker(
-            config: widget.config,
-            key: _yearPickerKey,
-            initialMonth: _currentDisplayedMonthDate,
-            selectedDates: _selectedDates,
-            onChanged: _handleYearChanged,
-          ),
-        );
+        default:
+          return Container();
+      // case DatePickerMode.year: //! for year grid view
+      //   return Padding(
+      //     padding: EdgeInsets.only(
+      //         top: widget.config.controlsHeight ?? _subHeaderHeight),
+      //     child: YearPicker(
+      //       config: widget.config,
+      //       key: _yearPickerKey,
+      //       initialMonth: _currentDisplayedMonthDate,
+      //       selectedDates: _selectedDates,
+      //       onChanged: _handleYearChanged,
+      //     ),
+      //   );
     }
   }
 
@@ -453,8 +512,12 @@ class _MonthPicker extends StatefulWidget {
     required this.selectedDates,
     required this.onChanged,
     required this.onDisplayedMonthChanged,
+    this.onTopBarTap,
     Key? key,
   }) : super(key: key);
+
+  /// for opening dialog for choosing year
+  final Function? onTopBarTap;
 
   /// The calendar configurations
   final CalendarDatePicker2Config config;
@@ -781,6 +844,7 @@ class _MonthPickerState extends State<_MonthPicker> {
           Container(  //! for month toggle
             padding: EdgeInsets.zero, // const EdgeInsetsDirectional.only(start: 16, end: 4),
             height: 40,
+            
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -802,7 +866,22 @@ class _MonthPickerState extends State<_MonthPicker> {
                       behavior: HitTestBehavior.translucent,
                       child: widget.config.nextMonthIcon ?? const Icon(Icons.chevron_left)
                     ),
-                    Text(_localizations.formatMonthYear(_currentMonth), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0))),
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () {
+                          if(this.widget.onTopBarTap != null) {
+                            this.widget.onTopBarTap!();
+                          }
+                        },
+                        child: Center(
+                          child: Text(
+                            _localizations.formatMonthYear(_currentMonth), 
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0))
+                          )
+                        )
+                      )
+                    ),
                     GestureDetector(
                       onTap: _isDisplayingLastMonth ? null : _handleNextMonth,
                       behavior: HitTestBehavior.translucent,
@@ -1382,6 +1461,8 @@ class _YearPickerState extends State<YearPicker> {
             ? _scrollOffsetForYear(widget.selectedDates[0]!)
             : _scrollOffsetForYear(DateUtils.dateOnly(DateTime.now()));
     _scrollController = ScrollController(initialScrollOffset: scrollOffset);
+
+    _selectedIndex = widget.selectedDates[0]!.year - widget.config.firstDate.year;
   }
 
   @override
@@ -1404,139 +1485,366 @@ class _YearPickerState extends State<YearPicker> {
     return _itemCount < minYears ? 0 : centeredYearRow * _yearPickerRowHeight;
   }
 
-  Widget _buildYearItem(BuildContext context, int index) {
+  Widget _buildYearItem(BuildContext context, int index, {bool isInCenter = false}) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     // Backfill the _YearPicker with disabled years if necessary.
     final int offset = _itemCount < minYears ? (minYears - _itemCount) ~/ 2 : 0;
     final int year = widget.config.firstDate.year + index - offset;
-    final bool isSelected = widget.selectedDates.any((d) => d?.year == year);
-    final bool isCurrentYear = year == widget.config.currentDate.year;
+    final bool isSelected = isInCenter;// widget.selectedDates.any((d) => d?.year == year);
+    // final bool isCurrentYear = year == widget.config.currentDate.year;
     final bool isDisabled = year < widget.config.firstDate.year ||
         year > widget.config.lastDate.year;
-    const double decorationHeight = 36.0;
-    const double decorationWidth = 72.0;
+    // const double decorationHeight = 36.0;
+    // const double decorationWidth = 72.0;
 
     final Color textColor;
     if (isSelected) {
       textColor = colorScheme.onPrimary;
     } else if (isDisabled) {
       textColor = colorScheme.onSurface.withOpacity(0.38);
-    } else if (isCurrentYear) {
-      textColor =
-          widget.config.selectedDayHighlightColor ?? colorScheme.primary;
+    // } else if (isCurrentYear) {
+    //   textColor =
+    //       widget.config.selectedDayHighlightColor ?? colorScheme.primary;
     } else {
       textColor = colorScheme.onSurface.withOpacity(0.87);
     }
     TextStyle? itemStyle = widget.config.yearTextStyle ??
         textTheme.bodyText1?.apply(color: textColor);
     if (isSelected) {
-      itemStyle = widget.config.selectedYearTextStyle ?? itemStyle;
+      // itemStyle = widget.config.selectedYearTextStyle ?? itemStyle;
+      itemStyle = widget.config.focusedYearTextStyle ?? itemStyle;
     }
 
-    BoxDecoration? decoration;
-    if (isSelected) {
-      decoration = BoxDecoration(
-        color: widget.config.selectedDayHighlightColor ?? colorScheme.primary,
-        borderRadius: widget.config.yearBorderRadius ??
-            BorderRadius.circular(decorationHeight / 2),
-      );
-    } else if (isCurrentYear && !isDisabled) {
-      decoration = BoxDecoration(
-        border: Border.all(
-          color: widget.config.selectedDayHighlightColor ?? colorScheme.primary,
-        ),
-        borderRadius: widget.config.yearBorderRadius ??
-            BorderRadius.circular(decorationHeight / 2),
-      );
-    }
+    // BoxDecoration? decoration;
+    // if (isSelected) {
+    //   decoration = BoxDecoration(
+    //     color: widget.config.selectedDayHighlightColor ?? colorScheme.primary,
+    //     borderRadius: widget.config.yearBorderRadius ??
+    //         BorderRadius.circular(decorationHeight / 2),
+    //   );
+    // } 
+    // else if (isCurrentYear && !isDisabled) {
+    //   decoration = BoxDecoration(
+    //     border: Border.all(
+    //       color: widget.config.selectedDayHighlightColor ?? colorScheme.primary,
+    //     ),
+    //     borderRadius: widget.config.yearBorderRadius ??
+    //         BorderRadius.circular(decorationHeight / 2),
+    //   );
+    // }
 
-    Widget yearItem = Center(
-      child: Container(
-        decoration: decoration,
-        height: decorationHeight,
-        width: decorationWidth,
-        child: Center(
-          child: Semantics(
-            selected: isSelected,
-            button: true,
-            child: Text(
+    Widget yearItem = Text(
               year.toString(),
-              style: itemStyle,
-            ),
-          ),
-        ),
-      ),
+              style: isSelected ? itemStyle : null,
+            );
+    // Center(
+    //   child: Container(
+    //     // decoration: decoration,
+    //     height: decorationHeight,
+    //     width: decorationWidth,
+    //     child: Center(
+    //       child: Semantics(
+    //         selected: isSelected,
+    //         button: true,
+    //         child: Text(
+    //           year.toString(),
+    //           style: itemStyle,
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // );
+
+    // if (isDisabled) {
+    //   yearItem = ExcludeSemantics(
+    //     child: yearItem,
+    //   );
+    // } else {
+    //   yearItem = InkWell(
+    //     key: ValueKey<int>(year),
+    //     onTap: () => widget.onChanged(
+    //       DateTime(
+    //         year,
+    //         widget.initialMonth.month,
+    //       ),
+    //     ),
+    //     child: yearItem,
+    //   );
+    // }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Center(child: yearItem),
     );
-
-    if (isDisabled) {
-      yearItem = ExcludeSemantics(
-        child: yearItem,
-      );
-    } else {
-      yearItem = InkWell(
-        key: ValueKey<int>(year),
-        onTap: () => widget.onChanged(
-          DateTime(
-            year,
-            widget.initialMonth.month,
-          ),
-        ),
-        child: yearItem,
-      );
-    }
-
-    return yearItem;
   }
 
   int get _itemCount {
     return widget.config.lastDate.year - widget.config.firstDate.year + 1;
   }
 
+  late int _selectedIndex;
+
   @override
   Widget build(BuildContext context) {
-    assert(debugCheckHasMaterial(context));
+    // assert(debugCheckHasMaterial(context)); 
+    
     return Column(
-      children: <Widget>[
-        const Divider(),
-        Expanded(
-          child: GridView.builder(
-            controller: _scrollController,
-            dragStartBehavior: widget.dragStartBehavior,
-            gridDelegate: _yearPickerGridDelegate,
-            itemBuilder: _buildYearItem,
-            itemCount: math.max(_itemCount, minYears),
-            padding: const EdgeInsets.symmetric(horizontal: _yearPickerPadding),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildInfoBlock(),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 15),
+          child: Text("Change Year", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17 / 14, color: Color(0xFF848CA0))),
+        ),
+        _buildYearPicker(),
+        const SizedBox(height: 15),
+        _buildButtons()
+      ],
+    );
+    // return Column(
+    //   children: <Widget>[
+    //     // const Divider(),
+    //     // Expanded(
+    //     //   child: GridView.builder(
+    //     //     controller: _scrollController,
+    //     //     dragStartBehavior: widget.dragStartBehavior,
+    //     //     gridDelegate: _yearPickerGridDelegate,
+    //     //     itemBuilder: _buildYearItem,
+    //     //     itemCount: math.max(_itemCount, minYears),
+    //     //     padding: const EdgeInsets.symmetric(horizontal: _yearPickerPadding),
+    //     //   ),
+    //     // ),
+    //     // const Divider(),
+    //   ],
+    // );
+  }
+
+  Widget _buildInfoBlock() {
+    String locale = Localizations.localeOf(context).languageCode;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        Navigator.pop(context);
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          color: const Color(0xFF375CB0),
+          width: MediaQuery.of(context).size.width,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.selectedDates[0]!.year.toString(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Colors.white)),
+                const SizedBox(height: 5),
+                Text("${intl.DateFormat.MMM(locale).format(widget.selectedDates[0]!)} ${widget.selectedDates[0]!.day}", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w400, height: 29.26 / 24, color: Colors.white)),
+              ],
+            ),
           ),
         ),
-        const Divider(),
+      ),
+    );
+  }
+
+  Widget _buildYearPicker() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Divider(
+          color: Color(0xFFE2EAFD),
+          height: 1, 
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          child: SizedBox(
+            height: 221,
+            child: CupertinoTheme(
+              data: CupertinoThemeData(
+                textTheme: CupertinoTextThemeData(
+                  pickerTextStyle: widget.config.yearTextStyle,
+                )
+              ),
+              child: CupertinoPicker(
+                children: List.generate(math.max(_itemCount, minYears), (index) => index).map(
+                  (index) => _buildYearItem(context, index, isInCenter: index == _selectedIndex)
+                ).toList(),
+                onSelectedItemChanged: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+                backgroundColor: Colors.transparent,
+                selectionOverlay: null,
+                itemExtent: 40,
+                // useMagnifier: true,
+                // magnification: 1.2,
+                diameterRatio: 5,
+                scrollController: FixedExtentScrollController(initialItem: widget.selectedDates[0]!.year - widget.config.firstDate.year),
+              ),
+            ),
+          ),
+        ),
+        const Divider(
+          color: Color(0xFFE2EAFD),
+          height: 1, 
+        ),
       ],
     );
   }
-}
 
-class _YearPickerGridDelegate extends SliverGridDelegate {
-  const _YearPickerGridDelegate();
+  Widget _buildButtons() {
+    double btnWidth = (MediaQuery.of(context).size.width - (40 * 2 + 16 * 2 + 10)) / 2;
 
-  @override
-  SliverGridLayout getLayout(SliverConstraints constraints) {
-    final double tileWidth = (constraints.crossAxisExtent -
-            (_yearPickerColumnCount - 1) * _yearPickerRowSpacing) /
-        _yearPickerColumnCount;
-    return SliverGridRegularTileLayout(
-      childCrossAxisExtent: tileWidth,
-      childMainAxisExtent: _yearPickerRowHeight,
-      crossAxisCount: _yearPickerColumnCount,
-      crossAxisStride: tileWidth + _yearPickerRowSpacing,
-      mainAxisStride: _yearPickerRowHeight,
-      reverseCrossAxis: axisDirectionIsReversed(constraints.crossAxisDirection),
+    return Row(
+      children: [
+        PrimaryButton(
+          label: "Cancel",
+          buttonHeight: 40,
+          buttonWidth: btnWidth,
+          borderColor: const Color(0xFF375CB0),
+          color: Colors.transparent,
+          textColor: const Color(0xFF375CB0),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        const SizedBox(width: 10),
+        PrimaryButton(
+          label: "Okay",
+          buttonHeight: 40,
+          buttonWidth: btnWidth,
+          borderColor: const Color(0xFF375CB0),
+          color: const Color(0xFF375CB0),
+          textColor: Colors.white,
+          onPressed: () {
+            Navigator.pop(context, (_selectedIndex + widget.config.firstDate.year).toString());
+          },
+        )
+      ],
     );
   }
 
-  @override
-  bool shouldRelayout(_YearPickerGridDelegate oldDelegate) => false;
 }
 
-const _YearPickerGridDelegate _yearPickerGridDelegate =
-    _YearPickerGridDelegate();
+// class _YearPickerGridDelegate extends SliverGridDelegate {
+//   const _YearPickerGridDelegate();
+
+//   @override
+//   SliverGridLayout getLayout(SliverConstraints constraints) {
+//     final double tileWidth = (constraints.crossAxisExtent -
+//             (_yearPickerColumnCount - 1) * _yearPickerRowSpacing) /
+//         _yearPickerColumnCount;
+//     return SliverGridRegularTileLayout(
+//       childCrossAxisExtent: tileWidth,
+//       childMainAxisExtent: _yearPickerRowHeight,
+//       crossAxisCount: _yearPickerColumnCount,
+//       crossAxisStride: tileWidth + _yearPickerRowSpacing,
+//       mainAxisStride: _yearPickerRowHeight,
+//       reverseCrossAxis: axisDirectionIsReversed(constraints.crossAxisDirection),
+//     );
+//   }
+
+//   @override
+//   bool shouldRelayout(_YearPickerGridDelegate oldDelegate) => false;
+// }
+
+// const _YearPickerGridDelegate _yearPickerGridDelegate =
+//     _YearPickerGridDelegate();
+
+    
+class PrimaryButton extends StatelessWidget {
+  const PrimaryButton({Key? key, 
+    required this.label,
+    this.color,
+    this.textColor,
+    this.trailingWidget,
+    this.onPressed,
+    this.leadingWidget,
+    this.borderColor,
+    this.mainAxisAlignment = MainAxisAlignment.center,
+    this.buttonHeight = 60,
+    this.buttonWidth
+  }) : super(key: key);
+
+  final Color? color;
+  final Color? textColor;
+  final String label;
+  final Widget? trailingWidget;
+  final Widget? leadingWidget;
+  final void Function()? onPressed;
+  final Color? borderColor;
+  final MainAxisAlignment mainAxisAlignment;
+  final double buttonHeight;
+  final double? buttonWidth;
+
+  final TextStyle buttonSize14 = const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 1.25, height: 17 / 14);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        width: buttonWidth ?? MediaQuery.of(context).size.width,
+        height: buttonHeight,
+        decoration: BoxDecoration(
+          color: color ?? const Color(0xFF3C69D1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: borderColor == null ? Colors.transparent : borderColor!,
+          ),
+        ),
+        child: leadingWidget != null
+            ? Row(
+                mainAxisAlignment: mainAxisAlignment,
+                children: [
+                  leadingWidget != null ? leadingWidget! : const SizedBox(),
+                  Text(label, style: buttonSize14.copyWith(color: textColor)),
+                  trailingWidget != null ? trailingWidget! : const SizedBox(),
+                ],
+              )
+            : trailingWidget != null
+                ? Row(
+                    mainAxisAlignment: mainAxisAlignment,
+                    children: [
+                      Text(label, style: buttonSize14.copyWith(color: textColor)),
+                      trailingWidget != null ? trailingWidget! : const SizedBox(),
+                    ],
+                  )
+                : Center(child: Text(label, style: buttonSize14.copyWith(color: textColor))),
+      ),
+    );
+  }
+
+  Widget get child {
+    if (leadingWidget != null) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          leadingWidget!,
+          Text(label, style: buttonSize14.copyWith(color: textColor)),
+        ],
+      );
+    } else if (trailingWidget != null) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(label, style: buttonSize14.copyWith(color: textColor)),
+          trailingWidget!,
+        ],
+      );
+    }
+
+    return Center(
+      child: Text(label, style: buttonSize14.copyWith(color: textColor)),
+    );
+  }
+}

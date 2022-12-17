@@ -5,7 +5,7 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 class MyHomePage extends StatefulWidget {
   final String title;
   const MyHomePage({Key? key, required this.title}) : super(key: key);
-  
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -19,7 +19,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    DateTime now = DateTime.now();
     config = CalendarDatePicker2Config(
+      firstDate: DateTime(now.year - 110, now.month, now.day),
+      lastDate: DateTime(now.year, now.month, now.day),
       weekdayLabelTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.25, height: 17.07 / 14),
       weekdayLabels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
       firstDayOfWeek: 1,
@@ -31,11 +34,14 @@ class _MyHomePageState extends State<MyHomePage> {
       controlsTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0)),
       selectedDayHighlightColor: Colors.white.withOpacity(0.8),
       selectedDayBoxShadows: [BoxShadow(blurRadius: 5, color: Colors.black.withOpacity(0.05))],
-      todayHighlightColor: Colors.green,
+      todayHighlightColor: Colors.transparent,
       // todayTextStyle: ,
       pastOrFutureDaysTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0)),
       splashRadius: 0.0,
-      selectableDayPredicate: (day) => day.difference(DateTime.now()).isNegative,
+      selectableDayPredicate: (day) => day.difference(now).isNegative,
+      focusedYearTextStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.w400, height: 29.26 / 24, color: Color(0xFF375CB0)),
+      // selectedYearTextStyle: ,
+      yearTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF273B4A))
     );
   }
 
@@ -47,8 +53,9 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: SizedBox(
-          width: 375,
+          // width: 375,
           child: ListView(
+            padding: EdgeInsets.zero,
             children: <Widget>[
               _buildDefaultSingleDatePickerWithValue(),
             ],

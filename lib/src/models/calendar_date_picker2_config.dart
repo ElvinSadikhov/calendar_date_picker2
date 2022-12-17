@@ -46,6 +46,7 @@ class CalendarDatePicker2Config {
     this.dayTextStylePredicate,
     this.dayBuilder,
     this.disableYearPicker,
+    this.focusedYearTextStyle, 
   })  : calendarType = calendarType ?? CalendarDatePicker2Type.single,
         firstDate = firstDate ?? DateTime(1970),
         lastDate = lastDate ?? DateTime(DateTime.now().year + 50),
@@ -95,6 +96,12 @@ class CalendarDatePicker2Config {
 
   /// Custom text style for calendar mode toggle control
   final TextStyle? controlsTextStyle;
+
+  /// Custom text style for focused year
+  final TextStyle? focusedYearTextStyle;
+
+  // /// Custom text style for year
+  // final TextStyle? yearTextStyle;
 
   /// Custom text style for all calendar days
   final TextStyle? dayTextStyle;
