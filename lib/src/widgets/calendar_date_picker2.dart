@@ -850,7 +850,7 @@ class _MonthPickerState extends State<_MonthPicker> {
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    blurRadius: 5,
+                    blurRadius: 10,
                     color: Colors.black.withOpacity(0.05)
                   )
                 ]
