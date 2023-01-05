@@ -834,6 +834,8 @@ class _MonthPickerState extends State<_MonthPicker> {
     );
   }
 
+  final Color _greyDisabledIconColor = const Color(0xFF8D94A3); 
+
   @override
   Widget build(BuildContext context) {
     final Color controlColor =
@@ -865,7 +867,7 @@ class _MonthPickerState extends State<_MonthPicker> {
                     GestureDetector(
                       onTap: _isDisplayingFirstMonth ? null : _handlePreviousMonth,
                       behavior: HitTestBehavior.translucent,
-                      child: widget.config.nextMonthIcon ?? const Icon(Icons.chevron_left)
+                      child: widget.config.nextMonthIcon ?? Icon(Icons.chevron_left, color: _isDisplayingFirstMonth ? _greyDisabledIconColor : null)
                     ),
                     Expanded(
                       child: GestureDetector(
@@ -886,7 +888,7 @@ class _MonthPickerState extends State<_MonthPicker> {
                     GestureDetector(
                       onTap: _isDisplayingLastMonth ? null : _handleNextMonth,
                       behavior: HitTestBehavior.translucent,
-                      child: widget.config.nextMonthIcon ?? const Icon(Icons.chevron_right)
+                      child: widget.config.nextMonthIcon ?? Icon(Icons.chevron_right, color: _isDisplayingLastMonth ? _greyDisabledIconColor : null)
                     )
                   ],
                 ),
