@@ -280,40 +280,55 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
           onDisplayedMonthChanged: _handleMonthChanged,
           onTopBarTap: () async {
             BorderRadius borderRadius = BorderRadius.circular(20);
-            String? chosenYear = await showDialog(
+            String? chosenYear = await showGeneralDialog(
               context: context, 
               barrierDismissible: false, 
               barrierLabel: "",
               barrierColor: Colors.white.withOpacity(0.1),
               useRootNavigator: true,
-              builder: (context) {
-                return SizedBox(
-                  height: 400,
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                    child: AlertDialog(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: borderRadius, side: BorderSide.none),
-                      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                      contentPadding: EdgeInsets.zero,
-                      backgroundColor: Colors.white.withOpacity(0.1),
-                      content: ClipRRect(
-                        borderRadius: borderRadius,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.6),
-                          ),      
-                          child: Padding(
-                            padding: const EdgeInsets.all(40),
-                            child: YearPicker(
-                              config: widget.config,
-                              key: _yearPickerKey,
-                              initialMonth: _currentDisplayedMonthDate,
-                              selectedDates: _selectedDates,
-                              onChanged: _handleYearChanged,
+              pageBuilder: (context, animation, secondaryAnimation) => Container(),
+              transitionDuration: const Duration(milliseconds: 200),
+              transitionBuilder: (context, a1, a2, child) {
+                final curvedValue = Curves.easeInOut.transform(a1.value);
+                return Transform.scale(
+                  scale: curvedValue, // a1.value
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Opacity(
+                      opacity: a1.value,
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30), 
+                        child: SizedBox(
+                        height: 400,
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                          child: AlertDialog(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: borderRadius, side: BorderSide.none),
+                            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                            contentPadding: EdgeInsets.zero,
+                            backgroundColor: Colors.white.withOpacity(0.1),
+                            content: ClipRRect(
+                              borderRadius: borderRadius,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.6),
+                                ),      
+                                child: Padding(
+                                  padding: const EdgeInsets.all(40),
+                                  child: YearPicker(
+                                    config: widget.config,
+                                    key: _yearPickerKey,
+                                    initialMonth: _currentDisplayedMonthDate,
+                                    selectedDates: _selectedDates,
+                                    onChanged: _handleYearChanged,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
+                        )
                       ),
                     ),
                   ),
@@ -867,7 +882,7 @@ class _MonthPickerState extends State<_MonthPicker> {
                     GestureDetector(
                       onTap: _isDisplayingFirstMonth ? null : _handlePreviousMonth,
                       behavior: HitTestBehavior.translucent,
-                      child: widget.config.nextMonthIcon ?? Icon(Icons.chevron_left, color: _isDisplayingFirstMonth ? _greyDisabledIconColor : null)
+                      child: SizedBox(height: 14, width: 14, child: widget.config.nextMonthIcon ?? Icon(Icons.arrow_back_ios, size: 14, color: _isDisplayingFirstMonth ? _greyDisabledIconColor : null))
                     ),
                     Expanded(
                       child: GestureDetector(
@@ -888,7 +903,7 @@ class _MonthPickerState extends State<_MonthPicker> {
                     GestureDetector(
                       onTap: _isDisplayingLastMonth ? null : _handleNextMonth,
                       behavior: HitTestBehavior.translucent,
-                      child: widget.config.nextMonthIcon ?? Icon(Icons.chevron_right, color: _isDisplayingLastMonth ? _greyDisabledIconColor : null)
+                      child: SizedBox(height: 14, width: 14, child: widget.config.nextMonthIcon ?? Icon(Icons.arrow_forward_ios, size: 14, color: _isDisplayingLastMonth ? _greyDisabledIconColor : null))
                     )
                   ],
                 ),
@@ -1113,7 +1128,7 @@ class _DayPickerState extends State<_DayPicker> {
 
     final List<Widget> dayItems = _dayHeaders(headerStyle, localizations);
     // 1-based day of month, e.g. 1-31 for January, and 1-29 for February on
-    // a leap year.
+    // a leap year. 
 
     int day = -dayOffset;
     // int day = 0;
