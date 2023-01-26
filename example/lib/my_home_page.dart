@@ -74,6 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
           initialValue: _singleDatePickerValueWithDefaultValue,
           onValueChanged: (values) =>
               setState(() => _singleDatePickerValueWithDefaultValue = values),
+          includeTimeSelection: true
         ),
         const SizedBox(height: 10),
         Row(
@@ -97,6 +98,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String _getValueText(
     CalendarDatePicker2Type datePickerType,
     List<DateTime?> values,
-  ) => (values.isNotEmpty ? values[0] : null).toString().replaceAll('00:00:00.000', '');
+  ) => 
+    // (values.isNotEmpty ? values[0] : null).toString().replaceAll('00:00:00.000', '');
+    (values.isNotEmpty ? values[0] : null).toString();
 
 }

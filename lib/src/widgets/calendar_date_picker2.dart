@@ -4,9 +4,11 @@
 
 // ignore_for_file: unnecessary_this
 
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:calendar_date_picker2/src/widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -41,6 +43,7 @@ class CalendarDatePicker2 extends StatefulWidget {
     required this.config,
     this.onValueChanged,
     this.onDisplayedMonthChanged,
+    this.includeTimeSelection = false,
     Key? key,
   }) : super(key: key) {
     const valid = true;
@@ -65,6 +68,8 @@ class CalendarDatePicker2 extends StatefulWidget {
       );
     }
   }
+
+  final bool includeTimeSelection;
 
   /// The initially selected [DateTime]s that the picker should display.
   final List<DateTime?> initialValue;
@@ -260,9 +265,19 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
               !DateUtils.isSameDay(selectedDates[0],
                   _selectedDates.isNotEmpty ? _selectedDates[0] : null);
       if (isValueDifferent) {
-        _selectedDates = _selectedDates
-          ..clear()
-          ..addAll(selectedDates);
+        int hour = _selectedDates.first?.hour ?? 0;
+        int minute = _selectedDates.first?.minute ?? 0; 
+
+        // _selectedDates = _selectedDates
+        //   ..clear()
+        //   ..addAll(selectedDates); 
+        _selectedDates.clear();
+        selectedDates.forEach((d) { 
+          if(d != null) {
+            _selectedDates.add(DateTime(d.year, d.month, d.day, hour, minute));
+          }
+        });
+
         widget.onValueChanged?.call(_selectedDates);
       }
     });
@@ -368,13 +383,16 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     assert(debugCheckHasMaterial(context));
     assert(debugCheckHasMaterialLocalizations(context));
     assert(debugCheckHasDirectionality(context));
-    return Stack(
+    return Column(
       children: <Widget>[
         SizedBox(
           height: (widget.config.controlsHeight ?? _subHeaderHeight) +
               _maxDayPickerHeight,
           child: _buildPicker(),
-        ),
+        ), 
+        widget.includeTimeSelection
+          ?  _buildTimePicker()
+          : const SizedBox()
         // Put the mode toggle button on top so that it won't be covered up by the _MonthPicker
         // _DatePickerModeToggleButton( //! year picker button
         //   config: widget.config,
@@ -390,7 +408,186 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       ],
     );
   }
+
+  void _onTimeChanged(int hours, int minutes) { 
+    _selectedDates = _selectedDates.map((d) {
+      if(d != null) { 
+        return DateTime(d.year, d.month, d.day, hours, minutes);
+      }
+      return d;
+    }).toList();
+    widget.onValueChanged?.call(_selectedDates);
+  }
+
+  Widget _buildTimePicker() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: _TimePicker(
+        onChanged: _onTimeChanged, 
+        hours: widget.initialValue.first?.hour, 
+        minutes: widget.initialValue.first?.minute
+      ),
+    );
+  } 
 }
+
+enum _TimeType {
+  hours,
+  minutes   
+} 
+enum _ButtonDirection {
+  up,
+  down
+} 
+class _TimePicker extends StatefulWidget {
+  final int? hours;
+  final int? minutes;
+  final Function(int hours, int minutes)? onChanged;
+
+  const _TimePicker({Key? key, this.onChanged, this.hours, this.minutes}) : super(key: key);
+
+  @override
+  State<_TimePicker> createState() => __TimePickerState();
+}
+
+class __TimePickerState extends State<_TimePicker> {  
+  final TextStyle _textStyle = const TextStyle(fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: 0.15, height: 24 / 20);
+
+  late int _hours;
+  late int _minutes; 
+
+  Timer? _timer;
+  bool _longPressCanceled = false; 
+
+  @override
+  void initState() {
+    super.initState();
+    _hours = widget.hours ?? 8;
+    _minutes = widget.minutes ?? 0;
+  }
+
+  void _incrementHours() => setState(() => _hours = _hours == 23 ? 0 : _hours + 1); 
+  void _decrementHours() => setState(() => _hours = _hours == 0 ? 23 : _hours - 1);
+
+  void _incrementMinutes() {
+    setState(() {
+      if(_minutes == 59) {
+        _incrementHours(); 
+        _minutes = 0;
+      } else {
+        _minutes += 1;
+      } 
+    });
+  }
+
+  void _decrementMinutes() {
+    setState(() {
+      if(_minutes == 0) {
+        _decrementHours(); 
+        _minutes = 59;
+      } else {
+        _minutes -= 1;
+      } 
+    });
+  }
+
+  void _increaseValue(_TimeType type) => type == _TimeType.hours ? _incrementHours() : _incrementMinutes(); 
+  void _decreaseValue(_TimeType type) => type == _TimeType.hours ? _decrementHours() : _decrementMinutes(); 
+  void _changeValue(_TimeType type, _ButtonDirection direction) {
+    direction == _ButtonDirection.up ? _increaseValue(type) : _decreaseValue(type); 
+    widget.onChanged?.call(_hours, _minutes);
+  }
+
+  void _cancelLongPress() {
+    _timer?.cancel();
+    _longPressCanceled = true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildContainer(_TimeType.hours),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(":", style: _textStyle),
+          ),
+          _buildContainer(_TimeType.minutes),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContainer(_TimeType type) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        color: Colors.white, 
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 12),
+          child: Column(
+            children: [ 
+              _buildButton(type: type, direction: _ButtonDirection.up),
+              _buildValue(type),
+              _buildButton(type: type, direction: _ButtonDirection.down)
+            ],
+          ),
+        ),
+      ),
+    );
+  } 
+
+  Widget _buildValue(_TimeType type) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: SizedBox(
+        width: 46,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedFlipCounter(
+              duration: const Duration(milliseconds: 150),
+              value: type == _TimeType.hours 
+                ? _hours 
+                : _minutes,
+              textStyle: _textStyle,
+              curve: Curves.easeInOut,
+              wholeDigits: 2,
+              suffix: type == _TimeType.hours ? "h" : "m",  //! todo: need to add localization later
+            ), 
+          ],
+        ),
+      ) 
+    );
+  }
+
+  Widget _buildButton({required _TimeType type, required _ButtonDirection direction}) {
+    return GestureDetector(
+      onTap: () { _changeValue(type, direction); },
+      onLongPressEnd: (_) { _cancelLongPress(); },
+      onLongPress: () {
+        _longPressCanceled = false;
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (!_longPressCanceled) {
+            _timer = Timer.periodic(const Duration(milliseconds: 170), (timer) {
+              _changeValue(type, direction);
+            });
+          }
+        });
+      },
+      onLongPressUp: _cancelLongPress,
+      onLongPressMoveUpdate: (details) {
+        if (details.localOffsetFromOrigin.distance > 20) {
+          _cancelLongPress();
+        }
+      },
+      child: Icon(direction == _ButtonDirection.up ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: const Color(0xFFCCD2E3), size: 30)
+    );
+  } 
+}
+
 
 /// A button that used to toggle the [DatePickerMode] for a date picker.
 ///
