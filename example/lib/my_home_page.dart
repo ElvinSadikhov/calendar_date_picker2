@@ -74,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
           initialValue: _singleDatePickerValueWithDefaultValue,
           onValueChanged: (values) =>
               setState(() => _singleDatePickerValueWithDefaultValue = values),
-          includeTimeSelection: true
+          includeTimePicker: true
         ),
         const SizedBox(height: 10),
         Row(

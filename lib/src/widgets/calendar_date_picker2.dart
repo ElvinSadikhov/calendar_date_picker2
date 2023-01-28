@@ -43,7 +43,7 @@ class CalendarDatePicker2 extends StatefulWidget {
     required this.config,
     this.onValueChanged,
     this.onDisplayedMonthChanged,
-    this.includeTimeSelection = false,
+    this.includeTimePicker = false,
     Key? key,
   }) : super(key: key) {
     const valid = true;
@@ -69,7 +69,7 @@ class CalendarDatePicker2 extends StatefulWidget {
     }
   }
 
-  final bool includeTimeSelection;
+  final bool includeTimePicker;
 
   /// The initially selected [DateTime]s that the picker should display.
   final List<DateTime?> initialValue;
@@ -390,7 +390,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
               _maxDayPickerHeight,
           child: _buildPicker(),
         ), 
-        widget.includeTimeSelection
+        widget.includeTimePicker
           ?  _buildTimePicker()
           : const SizedBox()
         // Put the mode toggle button on top so that it won't be covered up by the _MonthPicker
