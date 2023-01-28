@@ -422,7 +422,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
   Widget _buildTimePicker() {
     return Padding(
       padding: const EdgeInsets.only(top: 20),
-      child: _TimePicker(
+      child: TimePicker(
         onChanged: _onTimeChanged, 
         hours: widget.initialValue.first?.hour, 
         minutes: widget.initialValue.first?.minute
@@ -439,18 +439,18 @@ enum _ButtonDirection {
   up,
   down
 } 
-class _TimePicker extends StatefulWidget {
+class TimePicker extends StatefulWidget {
   final int? hours;
   final int? minutes;
   final Function(int hours, int minutes)? onChanged;
 
-  const _TimePicker({Key? key, this.onChanged, this.hours, this.minutes}) : super(key: key);
+  const TimePicker({Key? key, this.onChanged, this.hours, this.minutes}) : super(key: key);
 
   @override
-  State<_TimePicker> createState() => __TimePickerState();
+  State<TimePicker> createState() => _TimePickerState();
 }
 
-class __TimePickerState extends State<_TimePicker> {  
+class _TimePickerState extends State<TimePicker> {  
   final TextStyle _textStyle = const TextStyle(fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: 0.15, height: 24 / 20);
 
   late int _hours;
@@ -542,8 +542,8 @@ class __TimePickerState extends State<_TimePicker> {
   Widget _buildValue(_TimeType type) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
-      child: SizedBox(
-        width: 46,
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 46), 
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
