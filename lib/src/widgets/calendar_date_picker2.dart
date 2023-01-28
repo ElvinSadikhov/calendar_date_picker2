@@ -37,45 +37,91 @@ const double _monthNavButtonsWidth = 108.0;
 
 T? _ambiguate<T>(T? value) => value;
 
+
+class CalendarController { 
+  final StreamController<Scheduled?> _streamController = StreamController();
+  late final Stream<Scheduled?> _stream;
+  Scheduled? _lastElement;
+  ScheduledDateTime? _lastDt;
+
+  CalendarController() {
+    _stream = _streamController.stream;
+  }
+
+  void _setLastData(Scheduled? s) async {
+    if(_lastElement == s) return; 
+      _lastElement = s;
+      if(s is ScheduledDateTime)  _lastDt = s;
+      _streamController.add(s);
+  } 
+
+  void listen(Function(Scheduled? s) listener) { 
+    _stream.listen(listener);
+  } 
+
+  void dispose() {
+    _streamController.close();
+  } 
+ 
+  Scheduled? get lastElement => _lastElement;
+  ScheduledDateTime? get lastDt => _lastDt;
+}  
+
 class CalendarDatePicker2 extends StatefulWidget {
   CalendarDatePicker2({
-    required this.initialValue,
-    required this.config,
-    this.onValueChanged,
+    required this.controller,
+    required this.initialValue, 
+    required this.config, 
     this.onDisplayedMonthChanged,
     this.includeTimePicker = false,
+    this.isInRepeatedMode = false,
     Key? key,
   }) : super(key: key) {
     const valid = true;
     const invalid = false;
 
+    origInitialValue = initialValue.map(
+      (v) { 
+        if(v == null) return null;
+        if(v is ScheduledDateTime) {
+          return v.dt;
+        } 
+        DateTime dt = controller.lastDt?.dt ?? DateTime.now(); 
+        return DateTime(dt.year, dt.month, dt.day, (v as ScheduledWeekDayTime).hour, v.minute);
+      }
+    ).toList();
+
     if (config.calendarType == CalendarDatePicker2Type.single) {
-      assert(initialValue.length < 2,
+      assert(origInitialValue.length < 2,
           'Error: single date picker only allows maximum one initial date');
+      
     }
 
     if (config.calendarType == CalendarDatePicker2Type.range &&
-        initialValue.length > 1) {
-      final isRangePickerValueValid = initialValue[0] == null
-          ? (initialValue[1] != null ? invalid : valid)
-          : (initialValue[1] != null
-              ? (initialValue[1]!.isBefore(initialValue[0]!) ? invalid : valid)
+        origInitialValue.length > 1) {
+      final isRangePickerValueValid = origInitialValue[0] == null
+          ? (origInitialValue[1] != null ? invalid : valid)
+          : (origInitialValue[1] != null
+              ? (origInitialValue[1]!.isBefore(origInitialValue[0]!) ? invalid : valid)
               : valid);
 
       assert(
         isRangePickerValueValid,
         'Error: range date picker must has start date set before setting end date, and start date must before end date.',
       );
-    }
+    } 
   }
 
+  final CalendarController controller;
   final bool includeTimePicker;
+  final bool isInRepeatedMode;  
+  final List<Scheduled?> initialValue;
 
   /// The initially selected [DateTime]s that the picker should display.
-  final List<DateTime?> initialValue;
+  late final List<DateTime?> origInitialValue;
 
   /// Called when the user selects a date in the picker.
-  final ValueChanged<List<DateTime?>>? onValueChanged;
+  // final ValueChanged<List<Scheduled?>>? onValueChanged;
 
   /// Called when the user navigates to a new month/year in the picker.
   final ValueChanged<DateTime>? onDisplayedMonthChanged;
@@ -89,7 +135,7 @@ class CalendarDatePicker2 extends StatefulWidget {
 
 class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
   bool _announcedInitialDate = false;
-  late List<DateTime?> _selectedDates;
+  late List<Scheduled?> _selectedDates;
   late DatePickerMode _mode;
   late DateTime _currentDisplayedMonthDate;
   final GlobalKey _monthPickerKey = GlobalKey();
@@ -101,13 +147,17 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
   void initState() {
     super.initState();
     final config = widget.config;
-    final initialDate = widget.initialValue.isNotEmpty &&
-            widget.initialValue[0] != null
-        ? DateTime(widget.initialValue[0]!.year, widget.initialValue[0]!.month)
+    final initialDate = widget.origInitialValue.isNotEmpty &&
+            widget.origInitialValue[0] != null
+        ? DateTime(widget.origInitialValue[0]!.year, widget.origInitialValue[0]!.month)
         : DateUtils.dateOnly(DateTime.now());
     _mode = config.calendarViewMode;
     _currentDisplayedMonthDate = DateTime(initialDate.year, initialDate.month);
-    _selectedDates = widget.initialValue;
+
+    _selectedDates = widget.origInitialValue.map((v) => v != null ? ScheduledDateTime(dt: v) : null).toList(); 
+    _curWeekdayIndex = widget.origInitialValue[0]?.weekday ?? 1;  
+    
+    widget.controller._setLastData(_selectedDates[0]);
   }
 
   @override
@@ -116,7 +166,30 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     if (widget.config.calendarViewMode != oldWidget.config.calendarViewMode) {
       _mode = widget.config.calendarViewMode;
     }
-    _selectedDates = widget.initialValue;
+    _selectedDates = widget.origInitialValue.map((v) => v != null ? ScheduledDateTime(dt: v) : null).toList();
+
+    if(widget.isInRepeatedMode) {
+      _selectedDates = _selectedDates.map((d) {
+        if(d == null) return null; 
+        return d is ScheduledDateTime
+          ? ScheduledWeekDayTime(weekday: widget.config.weekdayLabels?[_curWeekdayIndex] ?? "", hour: d.dt.hour, minute: d.dt.minute)
+          : d; 
+      }).toList();
+    } else {
+      _selectedDates = _selectedDates.map((d) {
+        if(d == null) return null; 
+        if(d is ScheduledWeekDayTime) {
+          if(widget.origInitialValue[0] != null) {
+            return ScheduledDateTime(dt: widget.origInitialValue[0]!);
+          } 
+          return ScheduledDateTime(dt: DateTime.now()); 
+        }
+        return d; 
+      }).toList();
+    } 
+    
+    debugPrint("update");
+    widget.controller._setLastData(_selectedDates[0]);
   }
 
   @override
@@ -130,15 +203,15 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     if (!_announcedInitialDate && _selectedDates.isNotEmpty) {
       _announcedInitialDate = true;
       for (final date in _selectedDates) {
-        if (date != null) {
+        if (date != null && date is ScheduledDateTime) {
           SemanticsService.announce(
-            _localizations.formatFullDate(date),
+            _localizations.formatFullDate(date.dt),
             _textDirection,
           );
         }
       }
-    }
-  }
+    } 
+  } 
 
   void _vibrate() {
     switch (Theme.of(context).platform) {
@@ -160,11 +233,11 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       _mode = mode;
       if (_selectedDates.isNotEmpty) {
         for (final date in _selectedDates) {
-          if (date != null) {
+          if (date != null && date is ScheduledDateTime) {
             SemanticsService.announce(
               _mode == DatePickerMode.day
-                  ? _localizations.formatMonthYear(date)
-                  : _localizations.formatYear(date),
+                  ? _localizations.formatMonthYear(date.dt)
+                  : _localizations.formatYear(date.dt),
               _textDirection,
             );
           }
@@ -187,7 +260,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       }
 
       if (fromYearPicker) {
-        final selectedDatesInThisYear = widget.initialValue
+        final selectedDatesInThisYear = widget.origInitialValue
             .where((d) => d?.year == date.year)
             .toList()
           ..sort((d1, d2) => d1!.compareTo(d2!));
@@ -224,49 +297,50 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
   }
 
   void _handleDayChanged(DateTime value) {
+    Scheduled scheduledValue = ScheduledDateTime(dt: value);
     _vibrate();
     setState(() {
       var selectedDates = [..._selectedDates];
       selectedDates.removeWhere((d) => d == null);
 
       if (widget.config.calendarType == CalendarDatePicker2Type.single) {
-        selectedDates = [value];
+        selectedDates = [scheduledValue];
       } else if (widget.config.calendarType == CalendarDatePicker2Type.multi) {
         final index =
-            selectedDates.indexWhere((d) => DateUtils.isSameDay(d, value));
+            selectedDates.indexWhere((d) => DateUtils.isSameDay((d as ScheduledDateTime?)?.dt, value));
         if (index != -1) {
           selectedDates.removeAt(index);
         } else {
-          selectedDates.add(value);
+          selectedDates.add(scheduledValue);
         }
       } else if (widget.config.calendarType == CalendarDatePicker2Type.range) {
         if (selectedDates.isEmpty) {
-          selectedDates.add(value);
+          selectedDates.add(scheduledValue);
         } else {
           final isRangeSet =
               selectedDates.length > 1 && selectedDates[1] != null;
           final isSelectedDayBeforeStartDate =
-              value.isBefore(selectedDates[0]!);
+              value.isBefore((selectedDates[0]! as ScheduledDateTime).dt);
 
           if (isRangeSet || isSelectedDayBeforeStartDate) {
-            selectedDates = [value, null];
+            selectedDates = [scheduledValue, null];
           } else {
-            selectedDates = [selectedDates[0], value];
+            selectedDates = [selectedDates[0], scheduledValue];
           }
         }
       }
 
       selectedDates
         ..removeWhere((d) => d == null)
-        ..sort((d1, d2) => d1!.compareTo(d2!));
+        ..sort((d1, d2) => (d1 as ScheduledDateTime).dt.compareTo((d2 as ScheduledDateTime).dt));
 
       final isValueDifferent =
           widget.config.calendarType != CalendarDatePicker2Type.single ||
-              !DateUtils.isSameDay(selectedDates[0],
-                  _selectedDates.isNotEmpty ? _selectedDates[0] : null);
+              !DateUtils.isSameDay((selectedDates[0] as ScheduledDateTime?)?.dt,
+                  _selectedDates.isNotEmpty ? (_selectedDates[0] as ScheduledDateTime?)?.dt : null);
       if (isValueDifferent) {
-        int hour = _selectedDates.first?.hour ?? 0;
-        int minute = _selectedDates.first?.minute ?? 0; 
+        int hour = (_selectedDates.first as ScheduledDateTime?)?.dt.hour ?? 0;
+        int minute = (_selectedDates.first as ScheduledDateTime?)?.dt.minute ?? 0; 
 
         // _selectedDates = _selectedDates
         //   ..clear()
@@ -274,11 +348,16 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
         _selectedDates.clear();
         selectedDates.forEach((d) { 
           if(d != null) {
-            _selectedDates.add(DateTime(d.year, d.month, d.day, hour, minute));
+            ScheduledDateTime sd = d as ScheduledDateTime;
+            _selectedDates.add(ScheduledDateTime(dt: DateTime(sd.dt.year, sd.dt.month, sd.dt.day, hour, minute)));
           }
         });
 
-        widget.onValueChanged?.call(_selectedDates);
+        if(this._selectedDates[0] != null) {
+          this._curWeekdayIndex = (this._selectedDates[0]! as ScheduledDateTime).dt.weekday;
+        }
+        widget.controller._setLastData(_selectedDates[0]);
+        // widget.onValueChanged?.call(_selectedDates);
       }
     });
   }
@@ -290,7 +369,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
           config: widget.config,
           key: _monthPickerKey,
           initialMonth: _currentDisplayedMonthDate,
-          selectedDates: _selectedDates,
+          selectedDates: _selectedDates.map((s) => s != null && s is ScheduledDateTime ? s.dt : null).toList(),
           onChanged: _handleDayChanged,
           onDisplayedMonthChanged: _handleMonthChanged,
           onTopBarTap: () async {
@@ -335,7 +414,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
                                     config: widget.config,
                                     key: _yearPickerKey,
                                     initialMonth: _currentDisplayedMonthDate,
-                                    selectedDates: _selectedDates,
+                                    selectedDates: _selectedDates.map((s) => s != null && s is ScheduledDateTime ? s.dt : null).toList(),
                                     onChanged: _handleYearChanged,
                                   ),
                                 ),
@@ -357,7 +436,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
                   _currentDisplayedMonthDate.month,
                 ),
               );
-              _handleDayChanged(DateTime(int.parse(chosenYear), _selectedDates[0]!.month, _selectedDates[0]!.day));
+              _handleDayChanged(DateTime(int.parse(chosenYear), (_selectedDates[0]! as ScheduledDateTime).dt.month, (_selectedDates[0]! as ScheduledDateTime).dt.day));
             }
           }
         );
@@ -382,14 +461,26 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
   Widget build(BuildContext context) {
     assert(debugCheckHasMaterial(context));
     assert(debugCheckHasMaterialLocalizations(context));
-    assert(debugCheckHasDirectionality(context));
+    assert(debugCheckHasDirectionality(context)); 
+    
     return Column(
       children: <Widget>[
-        SizedBox(
-          height: (widget.config.controlsHeight ?? _subHeaderHeight) +
-              _maxDayPickerHeight,
-          child: _buildPicker(),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          child: AnimatedCrossFade(
+            firstChild: _buildWeekdayPicker(), 
+            secondChild: _buildDatePicker(), 
+            crossFadeState: widget.isInRepeatedMode ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            duration: const Duration(milliseconds: 500), //?
+            reverseDuration: const Duration(milliseconds: 500), //?
+            firstCurve: Curves.easeInOut,
+            secondCurve: Curves.easeInOut,
+            sizeCurve: Curves.easeInOut,  
+          ),
         ), 
+        // widget.isInRepeatedMode 
+        //   ? _buildWeekdayPicker()
+        //   : _buildDatePicker(),
         widget.includeTimePicker
           ?  _buildTimePicker()
           : const SizedBox()
@@ -409,14 +500,78 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     );
   }
 
+  Widget _buildDatePicker() {
+    return SizedBox(
+      height: (widget.config.controlsHeight ?? _subHeaderHeight) +
+          _maxDayPickerHeight,
+      child: _buildPicker(),
+    );
+  }
+
+  late int _curWeekdayIndex; 
+
+  List<String> _getNormalWeekdaysOrder() {
+    if(widget.config.weekdayLabels == null) return [];
+
+    List<String> weekdays = widget.config.weekdayLabels!;
+    List<String> newLst = []; 
+    newLst.addAll(weekdays);
+    newLst.insert(weekdays.length, weekdays.first);
+    newLst.remove(weekdays.first); 
+    return newLst;
+  }
+
+  Widget _buildWeekdayPicker() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: this._getNormalWeekdaysOrder().map<Widget>((wd) {
+              int index = (widget.config.weekdayLabels ?? []).indexOf(wd);
+              bool isSelected = index == this._curWeekdayIndex;
+              return GestureDetector(
+                onTap: () { 
+                  if(!isSelected) {
+                    setState(() {
+                      this._curWeekdayIndex = index;  
+                    }); 
+                    Scheduled? s = _selectedDates[0];
+                    int? h;
+                    int? m;
+                    if(s != null) {
+                      h = s is ScheduledDateTime ? s.dt.hour : (s as ScheduledWeekDayTime).hour;  
+                      m = s is ScheduledDateTime ? s.dt.minute : (s as ScheduledWeekDayTime).minute;  
+                    } 
+                    Scheduled newS = ScheduledWeekDayTime(weekday: widget.config.weekdayLabels?[_curWeekdayIndex] ?? "", hour: h ?? 0, minute: m ?? 0);
+                    _selectedDates = [newS]; 
+                    widget.controller._setLastData(_selectedDates[0]);
+                    // widget.onValueChanged?.call(_selectedDates);
+                  }
+                },
+                child: Center(child: Text(
+                  wd, 
+                  style: widget.config.weekdayLabelTextStyle?.copyWith(color: isSelected ? const Color(0xFF3C69D1) : null)
+                ))
+              );
+            }).toList(),
+          ), 
+        ],
+      ),
+    );
+  }
+
   void _onTimeChanged(int hours, int minutes) { 
-    _selectedDates = _selectedDates.map((d) {
-      if(d != null) { 
-        return DateTime(d.year, d.month, d.day, hours, minutes);
-      }
-      return d;
+    _selectedDates = _selectedDates.map((s) { 
+      if(s != null) { 
+        return widget.isInRepeatedMode
+          ? ScheduledWeekDayTime(weekday: widget.config.weekdayLabels?[_curWeekdayIndex] ?? "", hour: hours, minute: minutes)
+          : ScheduledDateTime(dt: DateTime((s as ScheduledDateTime).dt.year, s.dt.month, s.dt.day, hours, minutes));  
+      } 
     }).toList();
-    widget.onValueChanged?.call(_selectedDates);
+    widget.controller._setLastData(_selectedDates[0]);
+    // widget.onValueChanged?.call(_selectedDates);
   }
 
   Widget _buildTimePicker() {
@@ -424,8 +579,8 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       padding: const EdgeInsets.only(top: 25),
       child: TimePicker(
         onChanged: _onTimeChanged, 
-        initHour: widget.initialValue.first?.hour, 
-        initMinute: widget.initialValue.first?.minute
+        initHour: widget.origInitialValue.first?.hour, 
+        initMinute: widget.origInitialValue.first?.minute
       ),
     );
   } 
@@ -1566,8 +1721,7 @@ class _DayPickerState extends State<_DayPicker> {
 
         dayItems.add(dayWidget);
       // }
-    }
-    debugPrint("rebuild");
+    } 
     return Padding( //!smth here
       padding: const EdgeInsets.symmetric(
         horizontal: _monthPickerHorizontalPadding,

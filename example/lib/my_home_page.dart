@@ -11,11 +11,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<DateTime?> _singleDatePickerValueWithDefaultValue = [
-    DateTime.now(),
+  List<Scheduled?> _singleDatePickerValueWithDefaultValue = [
+    ScheduledDateTime(dt: DateTime.now()),
   ];
   late final CalendarDatePicker2Config config; 
 
+  bool _isInRepeatedMode = false;
+  final CalendarController calendarController = CalendarController();
+  String value = "";
+  
   @override
   void initState() {
     super.initState();
@@ -43,6 +47,19 @@ class _MyHomePageState extends State<MyHomePage> {
       // selectedYearTextStyle: ,
       yearTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF273B4A))
     );
+
+    calendarController.listen((s) { 
+      setState(() {
+        _singleDatePickerValueWithDefaultValue = [s];
+        value = s.toString();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    calendarController.dispose();
+    super.dispose();
   }
 
   @override
@@ -65,41 +82,24 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+
   Widget _buildDefaultSingleDatePickerWithValue() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         CalendarDatePicker2(
+          controller: calendarController,
           config: config,
-          initialValue: _singleDatePickerValueWithDefaultValue,
-          onValueChanged: (values) =>
-              setState(() => _singleDatePickerValueWithDefaultValue = values),
-          includeTimePicker: true
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Selection(s):  '),
-            const SizedBox(width: 10),
-            Text(
-              _getValueText(
-                config.calendarType,
-                _singleDatePickerValueWithDefaultValue,
-              ),
-            ),
-          ],
-        ),
+          initialValue: _singleDatePickerValueWithDefaultValue, 
+          includeTimePicker: true,
+          isInRepeatedMode: _isInRepeatedMode
+        ), 
         const SizedBox(height: 25),
+        ElevatedButton(onPressed: () { setState(() {
+          _isInRepeatedMode = !_isInRepeatedMode;
+        }); }, child: Container(height: 50, width: 50, color: Colors.red)),
+        Text(value),
       ],
     );
-  }
-
-  String _getValueText(
-    CalendarDatePicker2Type datePickerType,
-    List<DateTime?> values,
-  ) => 
-    // (values.isNotEmpty ? values[0] : null).toString().replaceAll('00:00:00.000', '');
-    (values.isNotEmpty ? values[0] : null).toString();
-
+  }  
 }
