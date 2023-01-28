@@ -421,7 +421,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
 
   Widget _buildTimePicker() {
     return Padding(
-      padding: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.only(top: 25),
       child: TimePicker(
         onChanged: _onTimeChanged, 
         initHour: widget.initialValue.first?.hour, 
