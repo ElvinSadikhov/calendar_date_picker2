@@ -513,10 +513,7 @@ class _TimePickerState extends State<TimePicker> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildContainer(_TimeType.hours),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text(":", style: _textStyle),
-          ),
+          SizedBox(width: 25, child: Center(child: Text(":", style: _textStyle))),
           _buildContainer(_TimeType.minutes),
         ],
       ),
