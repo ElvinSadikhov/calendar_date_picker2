@@ -424,8 +424,8 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       padding: const EdgeInsets.only(top: 20),
       child: TimePicker(
         onChanged: _onTimeChanged, 
-        hours: widget.initialValue.first?.hour, 
-        minutes: widget.initialValue.first?.minute
+        initHour: widget.initialValue.first?.hour, 
+        initMinute: widget.initialValue.first?.minute
       ),
     );
   } 
@@ -440,11 +440,14 @@ enum _ButtonDirection {
   down
 } 
 class TimePicker extends StatefulWidget {
-  final int? hours;
-  final int? minutes;
+  final int? initHour;
+  final int? initMinute;
   final Function(int hours, int minutes)? onChanged;
 
-  const TimePicker({Key? key, this.onChanged, this.hours, this.minutes}) : super(key: key);
+  TimePicker({Key? key, this.onChanged, this.initHour, this.initMinute}) : super(key: key) {
+    if(initHour != null)  assert(initHour! >= 0 && initHour! < 24);
+    if(initMinute != null)  assert(initMinute! >= 0 && initMinute! < 60);
+  }
 
   @override
   State<TimePicker> createState() => _TimePickerState();
@@ -462,8 +465,8 @@ class _TimePickerState extends State<TimePicker> {
   @override
   void initState() {
     super.initState();
-    _hours = widget.hours ?? 8;
-    _minutes = widget.minutes ?? 0;
+    _hours = widget.initHour ?? 8;
+    _minutes = widget.initMinute ?? 0;
   }
 
   void _incrementHours() => setState(() => _hours = _hours == 23 ? 0 : _hours + 1); 
