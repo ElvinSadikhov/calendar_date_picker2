@@ -46,7 +46,11 @@ class CalendarDatePicker2Config {
     this.dayTextStylePredicate,
     this.dayBuilder,
     this.disableYearPicker,
-    this.focusedYearTextStyle, 
+    this.focusedYearTextStyle,
+    this.selectedWeekdayHighlightColor, 
+    this.selectedWeekdayBoxShadows, 
+    this.weekdayBorderRadius,
+    this.selectedWeekdayTextStyle
   })  : calendarType = calendarType ?? CalendarDatePicker2Type.single,
         firstDate = firstDate ?? DateTime(1970),
         lastDate = lastDate ?? DateTime(DateTime.now().year + 50),
@@ -81,6 +85,9 @@ class CalendarDatePicker2Config {
 
   /// Custom text style for weekday labels
   final TextStyle? weekdayLabelTextStyle;
+
+  /// Custom text style for selected weekday label
+  final TextStyle? selectedWeekdayTextStyle;
 
   /// Index of the first day of week, where 0 points to Sunday, and 6 points to Saturday.
   final int? firstDayOfWeek;
@@ -118,6 +125,12 @@ class CalendarDatePicker2Config {
   /// The box shadows for selected day(s)
   final List<BoxShadow>? selectedDayBoxShadows;
 
+  /// The highlight color for selected weekday(s)
+  final Color? selectedWeekdayHighlightColor;
+
+  /// The box shadows for selected weekday(s)
+  final List<BoxShadow>? selectedWeekdayBoxShadows;
+
   /// The highlight color for today
   final Color? todayHighlightColor;
 
@@ -135,6 +148,9 @@ class CalendarDatePicker2Config {
 
   /// Custom border radius for day indicator
   final BorderRadius? dayBorderRadius;
+
+  /// Custom border radius for weekday indicator
+  final BorderRadius? weekdayBorderRadius;
 
   /// Custom border radius for year indicator
   final BorderRadius? yearBorderRadius;

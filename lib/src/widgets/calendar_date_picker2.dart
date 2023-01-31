@@ -18,7 +18,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' as intl;
 
-const Duration _monthScrollDuration = Duration(milliseconds: 200);
+const Duration _monthScrollDuration = Duration(milliseconds: 300);
 
 const double _dayPickerRowHeight = 42.0;
 const int _maxDayPickerRowCount = 6; // A 31 day month that starts on Saturday.
@@ -48,11 +48,11 @@ class CalendarController {
     _stream = _streamController.stream;
   }
 
-  void _setLastData(Scheduled? s) async {
+  void _setData(Scheduled? s) {
     if(_lastElement == s) return; 
-      _lastElement = s;
-      if(s is ScheduledDateTime)  _lastDt = s;
-      _streamController.add(s);
+    _lastElement = s;
+    if(s is ScheduledDateTime)  _lastDt = s;
+    _streamController.add(s);
   } 
 
   void listen(Function(Scheduled? s) listener) { 
@@ -61,6 +61,9 @@ class CalendarController {
 
   void dispose() {
     _streamController.close();
+    _stream.drain();
+    _lastElement = null;
+    _lastDt = null;
   } 
  
   Scheduled? get lastElement => _lastElement;
@@ -86,7 +89,7 @@ class CalendarDatePicker2 extends StatefulWidget {
         if(v is ScheduledDateTime) {
           return v.dt;
         } 
-        DateTime dt = controller.lastDt?.dt ?? DateTime.now(); 
+        DateTime dt = controller.lastDt?.dt ?? DateTime.now();  
         return DateTime(dt.year, dt.month, dt.day, (v as ScheduledWeekDayTime).hour, v.minute);
       }
     ).toList();
@@ -157,7 +160,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     _selectedDates = widget.origInitialValue.map((v) => v != null ? ScheduledDateTime(dt: v) : null).toList(); 
     _curWeekdayIndex = widget.origInitialValue[0]?.weekday ?? 1;  
     
-    widget.controller._setLastData(_selectedDates[0]);
+    widget.controller._setData(_selectedDates[0]);
   }
 
   @override
@@ -189,7 +192,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     } 
     
     debugPrint("update");
-    widget.controller._setLastData(_selectedDates[0]);
+    widget.controller._setData(_selectedDates[0]);
   }
 
   @override
@@ -356,7 +359,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
         if(this._selectedDates[0] != null) {
           this._curWeekdayIndex = (this._selectedDates[0]! as ScheduledDateTime).dt.weekday;
         }
-        widget.controller._setLastData(_selectedDates[0]);
+        widget.controller._setData(_selectedDates[0]);
         // widget.onValueChanged?.call(_selectedDates);
       }
     });
@@ -381,7 +384,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
               barrierColor: Colors.white.withOpacity(0.1),
               useRootNavigator: true,
               pageBuilder: (context, animation, secondaryAnimation) => Container(),
-              transitionDuration: const Duration(milliseconds: 200),
+              transitionDuration: const Duration(milliseconds: 300),
               transitionBuilder: (context, a1, a2, child) {
                 final curvedValue = Curves.easeInOut.transform(a1.value);
                 return Transform.scale(
@@ -521,7 +524,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     return newLst;
   }
 
-  Widget _buildWeekdayPicker() {
+  Widget _buildWeekdayPicker() {  
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -532,34 +535,49 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
               int index = (widget.config.weekdayLabels ?? []).indexOf(wd);
               bool isSelected = index == this._curWeekdayIndex;
               return GestureDetector(
-                onTap: () { 
-                  if(!isSelected) {
-                    setState(() {
-                      this._curWeekdayIndex = index;  
-                    }); 
-                    Scheduled? s = _selectedDates[0];
-                    int? h;
-                    int? m;
-                    if(s != null) {
-                      h = s is ScheduledDateTime ? s.dt.hour : (s as ScheduledWeekDayTime).hour;  
-                      m = s is ScheduledDateTime ? s.dt.minute : (s as ScheduledWeekDayTime).minute;  
-                    } 
-                    Scheduled newS = ScheduledWeekDayTime(weekday: widget.config.weekdayLabels?[_curWeekdayIndex] ?? "", hour: h ?? 0, minute: m ?? 0);
-                    _selectedDates = [newS]; 
-                    widget.controller._setLastData(_selectedDates[0]);
-                    // widget.onValueChanged?.call(_selectedDates);
-                  }
-                },
-                child: Center(child: Text(
-                  wd, 
-                  style: widget.config.weekdayLabelTextStyle?.copyWith(color: isSelected ? const Color(0xFF3C69D1) : null)
-                ))
+                onTap: () { _onWeekdayTap(isSelected: isSelected, index: index); },
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7), 
+                    decoration: isSelected ? BoxDecoration(
+                      borderRadius: widget.config.weekdayBorderRadius,
+                      color: widget.config.selectedWeekdayHighlightColor,  
+                      boxShadow: widget.config.selectedWeekdayBoxShadows,
+                      shape: widget.config.weekdayBorderRadius != null
+                        ? BoxShape.rectangle
+                        : BoxShape.circle,
+                    ) : null,
+                    child: Text(
+                      wd, 
+                      style: isSelected ? widget.config.selectedWeekdayTextStyle : widget.config.weekdayLabelTextStyle
+                    ),
+                  )
+                )
               );
             }).toList(),
           ), 
         ],
       ),
     );
+  }
+
+  void _onWeekdayTap({required bool isSelected, required int index}) {
+    if(!isSelected) {
+      setState(() {
+        this._curWeekdayIndex = index;  
+      }); 
+      Scheduled? s = _selectedDates[0];
+      int? h;
+      int? m;
+      if(s != null) {
+        h = s is ScheduledDateTime ? s.dt.hour : (s as ScheduledWeekDayTime).hour;  
+        m = s is ScheduledDateTime ? s.dt.minute : (s as ScheduledWeekDayTime).minute;  
+      } 
+      Scheduled newS = ScheduledWeekDayTime(weekday: widget.config.weekdayLabels?[_curWeekdayIndex] ?? "", hour: h ?? 0, minute: m ?? 0);
+      _selectedDates = [newS]; 
+      widget.controller._setData(_selectedDates[0]);
+      // widget.onValueChanged?.call(_selectedDates);
+    }
   }
 
   void _onTimeChanged(int hours, int minutes) { 
@@ -570,7 +588,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
           : ScheduledDateTime(dt: DateTime((s as ScheduledDateTime).dt.year, s.dt.month, s.dt.day, hours, minutes));  
       } 
     }).toList();
-    widget.controller._setLastData(_selectedDates[0]);
+    widget.controller._setData(_selectedDates[0]);
     // widget.onValueChanged?.call(_selectedDates);
   }
 
@@ -681,7 +699,7 @@ class _TimePickerState extends State<TimePicker> {
       child: Container(
         color: Colors.white, 
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
           child: Column(
             children: [ 
               _buildButton(type: type, direction: _ButtonDirection.up),
@@ -724,7 +742,7 @@ class _TimePickerState extends State<TimePicker> {
       onLongPressEnd: (_) { _cancelLongPress(); },
       onLongPress: () {
         _longPressCanceled = false;
-        Future.delayed(const Duration(milliseconds: 200), () {
+        Future.delayed(const Duration(milliseconds: 300), () {
           if (!_longPressCanceled) {
             _timer = Timer.periodic(const Duration(milliseconds: 170), (timer) {
               _changeValue(type, direction);
@@ -784,7 +802,7 @@ class _DatePickerModeToggleButtonState
     _controller = AnimationController(
       value: widget.mode == DatePickerMode.year ? 0.5 : 0,
       upperBound: 0.5,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
   }

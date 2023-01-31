@@ -28,9 +28,11 @@ class _MyHomePageState extends State<MyHomePage> {
       firstDate: DateTime(now.year - 110, now.month, now.day),
       lastDate: DateTime(now.year, now.month, now.day),
       weekdayLabelTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.25, height: 17.07 / 14),
+      selectedWeekdayTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF3C69D1)),
       weekdayLabels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
       firstDayOfWeek: 1,
       dayBorderRadius: BorderRadius.circular(10),
+      weekdayBorderRadius: BorderRadius.circular(10),
       controlsHeight: 62, // 40 + 22
       dayTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14),
       disabledDayTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Colors.red), // Color(0xFF848CA0) //! todo:change
@@ -38,6 +40,8 @@ class _MyHomePageState extends State<MyHomePage> {
       controlsTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0)),
       selectedDayHighlightColor: Colors.white.withOpacity(0.8),
       selectedDayBoxShadows: [BoxShadow(blurRadius: 5, color: Colors.black.withOpacity(0.05))],
+      selectedWeekdayHighlightColor: Colors.white.withOpacity(0.8),
+      selectedWeekdayBoxShadows: [BoxShadow(blurRadius: 5, color: Colors.black.withOpacity(0.05))],
       todayHighlightColor: Colors.transparent,
       // todayTextStyle: ,
       pastOrFutureDaysTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0)),
