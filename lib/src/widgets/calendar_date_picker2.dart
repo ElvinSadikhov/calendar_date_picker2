@@ -383,22 +383,22 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
               barrierLabel: "",
               barrierColor: Colors.white.withOpacity(0.1),
               useRootNavigator: true,
-              pageBuilder: (context, animation, secondaryAnimation) => Container(),
+              pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
               transitionDuration: const Duration(milliseconds: 300),
-              transitionBuilder: (context, a1, a2, child) {
+              transitionBuilder: (context, a1, a2, child) {  
                 final curvedValue = Curves.easeInOut.transform(a1.value);
                 return Transform.scale(
                   scale: curvedValue, // a1.value
-                  child: Material(
-                    color: Colors.transparent,
+                  child: DefaultTextStyle(
+                    style: const TextStyle(),  
                     child: Opacity(
                       opacity: a1.value,
                       child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30), 
-                        child: SizedBox(
-                        height: 400,
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                        filter: ImageFilter.blur(
+                          sigmaX: 30,
+                          sigmaY: 30,
+                        ),
+                        child: Center(
                           child: AlertDialog(
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: borderRadius, side: BorderSide.none),
@@ -407,7 +407,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
                             backgroundColor: Colors.white.withOpacity(0.1),
                             content: ClipRRect(
                               borderRadius: borderRadius,
-                              child: Container(
+                              child: Container( 
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.6),
                                 ),      
@@ -425,11 +425,53 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
                             ),
                           ),
                         ),
-                        )
                       ),
                     ),
                   ),
                 );
+                // return Container(
+                //   height: 100,
+                //   width: 100,
+                //   color: Colors.red
+                // );
+                // final curvedValue = Curves.easeInOut.transform(a1.value);
+                // return Transform.scale(
+                //   scale: curvedValue, // a1.value
+                //   child: Opacity(
+                //     opacity: a1.value,
+                //     child: SizedBox(
+                //     height: 400,
+                //     child: BackdropFilter(
+                //       filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                //       child: AlertDialog(
+                //         elevation: 0,
+                //         shape: RoundedRectangleBorder(borderRadius: borderRadius, side: BorderSide.none),
+                //         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                //         contentPadding: EdgeInsets.zero,
+                //         backgroundColor: Colors.white.withOpacity(0.1),
+                //         content: ClipRRect(
+                //           borderRadius: borderRadius,
+                //           child: Container( 
+                //             decoration: BoxDecoration(
+                //               color: Colors.white.withOpacity(0.6),
+                //             ),      
+                //             child: Padding(
+                //               padding: const EdgeInsets.all(40),
+                //               child: YearPicker(
+                //                 config: widget.config,
+                //                 key: _yearPickerKey,
+                //                 initialMonth: _currentDisplayedMonthDate,
+                //                 selectedDates: _selectedDates.map((s) => s != null && s is ScheduledDateTime ? s.dt : null).toList(),
+                //                 onChanged: _handleYearChanged,
+                //               ),
+                //             ),
+                //           ),
+                //         ),
+                //       ),
+                //     ),
+                //     ),
+                //   ),
+                // );
               },
             ); 
             if(chosenYear != null) {
@@ -1875,17 +1917,17 @@ class _YearPickerState extends State<YearPicker> {
     _selectedIndex = widget.selectedDates[0]!.year - widget.config.firstDate.year;
   }
 
-  @override
-  void didUpdateWidget(YearPicker oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedDates != oldWidget.selectedDates) {
-      final scrollOffset =
-          widget.selectedDates.isNotEmpty && widget.selectedDates[0] != null
-              ? _scrollOffsetForYear(widget.selectedDates[0]!)
-              : _scrollOffsetForYear(DateUtils.dateOnly(DateTime.now()));
-      _scrollController.jumpTo(scrollOffset);
-    }
-  }
+  // @override
+  // void didUpdateWidget(YearPicker oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
+  //   if (widget.selectedDates != oldWidget.selectedDates) {
+  //     final scrollOffset =
+  //         widget.selectedDates.isNotEmpty && widget.selectedDates[0] != null
+  //             ? _scrollOffsetForYear(widget.selectedDates[0]!)
+  //             : _scrollOffsetForYear(DateUtils.dateOnly(DateTime.now()));
+  //     _scrollController.jumpTo(scrollOffset);
+  //   }
+  // }
 
   double _scrollOffsetForYear(DateTime date) {
     final int initialYearIndex = date.year - widget.config.firstDate.year;
