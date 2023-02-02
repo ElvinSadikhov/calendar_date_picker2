@@ -46,4 +46,12 @@ class ScheduledWeekDayTime extends Scheduled {
         && other.hour == hour
         && other.minute == minute;
   }
+
+  DateTime get weeklyDateTime {
+    DateTime now = DateTime.now();
+    DateTime dt = DateTime(now.year, now.month, now.day, hour, minute);
+    int dayDiff = dt.weekday - weekday;
+    return dayDiff > 0 ? dt.add(Duration(days: dayDiff)) : dt.subtract(Duration(days: dayDiff));
+  }
+
 }
