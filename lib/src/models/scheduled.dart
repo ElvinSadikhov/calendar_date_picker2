@@ -1,11 +1,13 @@
-abstract class Scheduled { }
+import '../utils/date_time_parser.dart';
 
+abstract class Scheduled { }
+ 
 class ScheduledDateTime extends Scheduled {
   DateTime dt;
   ScheduledDateTime({required this.dt}); 
 
   @override
-  String toString() {
+  String toString() { 
     return dt.toString();
   }
 
@@ -20,6 +22,17 @@ class ScheduledDateTime extends Scheduled {
     return other is ScheduledDateTime
         && other.dt == dt;
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "dt": dt.toJson()
+    };
+  }
+
+  ScheduledDateTime fromJson(Map<String, dynamic> json) {
+    return ScheduledDateTime(dt: DateTimeParser.fromJson(json));
+  }
+
 }
 
 class ScheduledWeekDayTime extends Scheduled {
@@ -52,6 +65,18 @@ class ScheduledWeekDayTime extends Scheduled {
     DateTime dt = DateTime(now.year, now.month, now.day, hour, minute);
     int dayDiff = dt.weekday - weekday;
     return dayDiff > 0 ? dt.add(Duration(days: dayDiff)) : dt.subtract(Duration(days: dayDiff));
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "weekday": weekday,
+      "hour": hour,
+      "minute": minute,
+    };
+  }
+
+  ScheduledWeekDayTime fromJson(Map<String, dynamic> json) {
+    return ScheduledWeekDayTime(weekday: json["weekday"] as int, hour: json["hour"] as int, minute: json["minute"] as int);
   }
 
 }
