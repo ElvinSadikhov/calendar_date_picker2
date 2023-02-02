@@ -81,7 +81,7 @@ class ScheduledWeekDayTime extends Scheduled {
     };
   }
  
-  ScheduledWeekDayTime fromJson(Map<String, dynamic> json) {
+  static ScheduledWeekDayTime fromJson(Map<String, dynamic> json) {
     return ScheduledWeekDayTime(weekday: json["weekday"] as int, hour: json["hour"] as int, minute: json["minute"] as int);
   }
 
