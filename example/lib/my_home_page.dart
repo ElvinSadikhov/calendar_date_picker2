@@ -25,7 +25,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     DateTime now = DateTime.now();
     config = CalendarDatePicker2Config(
-      firstDate: DateTime(now.year - 110, now.month, now.day),
+      firstDate: DateTime(now.year - 120, now.month, now.day),
       lastDate: DateTime(now.year, now.month, now.day),
       weekdayLabelTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.25, height: 17.07 / 14),
       selectedWeekdayTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF3C69D1)),

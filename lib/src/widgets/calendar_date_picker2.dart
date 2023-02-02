@@ -175,7 +175,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       _selectedDates = _selectedDates.map((d) {
         if(d == null) return null; 
         return d is ScheduledDateTime
-          ? ScheduledWeekDayTime(weekday: widget.config.weekdayLabels?[_curWeekdayIndex] ?? "", hour: d.dt.hour, minute: d.dt.minute)
+          ? ScheduledWeekDayTime(weekday: _curWeekdayIndex, hour: d.dt.hour, minute: d.dt.minute)
           : d; 
       }).toList();
     } else {
@@ -615,7 +615,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
         h = s is ScheduledDateTime ? s.dt.hour : (s as ScheduledWeekDayTime).hour;  
         m = s is ScheduledDateTime ? s.dt.minute : (s as ScheduledWeekDayTime).minute;  
       } 
-      Scheduled newS = ScheduledWeekDayTime(weekday: widget.config.weekdayLabels?[_curWeekdayIndex] ?? "", hour: h ?? 0, minute: m ?? 0);
+      Scheduled newS = ScheduledWeekDayTime(weekday: _curWeekdayIndex, hour: h ?? 0, minute: m ?? 0);
       _selectedDates = [newS]; 
       widget.controller._setData(_selectedDates[0]);
       // widget.onValueChanged?.call(_selectedDates);
@@ -626,7 +626,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     _selectedDates = _selectedDates.map((s) { 
       if(s != null) { 
         return widget.isInRepeatedMode
-          ? ScheduledWeekDayTime(weekday: widget.config.weekdayLabels?[_curWeekdayIndex] ?? "", hour: hours, minute: minutes)
+          ? ScheduledWeekDayTime(weekday: _curWeekdayIndex, hour: hours, minute: minutes)
           : ScheduledDateTime(dt: DateTime((s as ScheduledDateTime).dt.year, s.dt.month, s.dt.day, hours, minutes));  
       } 
     }).toList();

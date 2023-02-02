@@ -23,13 +23,13 @@ class ScheduledDateTime extends Scheduled {
 }
 
 class ScheduledWeekDayTime extends Scheduled {
-  String weekday;
+  int weekday;
   int hour;
   int minute; 
   ScheduledWeekDayTime({required this.weekday, required this.hour, required this.minute});
 
   @override
-  String toString() {
+  String toString() { 
     return "$weekday $hour:$minute";
   }
 
