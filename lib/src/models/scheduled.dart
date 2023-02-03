@@ -35,7 +35,7 @@ class ScheduledDateTime extends Scheduled {
   }
 
   static ScheduledDateTime fromJson(Map<String, dynamic> json) {
-    return ScheduledDateTime(dt: DateTimeParser.fromJson(json));
+    return ScheduledDateTime(dt: DateTimeParser.fromJson(json["dt"]));
   }
 
 }
