@@ -429,49 +429,6 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
                     ),
                   ),
                 );
-                // return Container(
-                //   height: 100,
-                //   width: 100,
-                //   color: Colors.red
-                // );
-                // final curvedValue = Curves.easeInOut.transform(a1.value);
-                // return Transform.scale(
-                //   scale: curvedValue, // a1.value
-                //   child: Opacity(
-                //     opacity: a1.value,
-                //     child: SizedBox(
-                //     height: 400,
-                //     child: BackdropFilter(
-                //       filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                //       child: AlertDialog(
-                //         elevation: 0,
-                //         shape: RoundedRectangleBorder(borderRadius: borderRadius, side: BorderSide.none),
-                //         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                //         contentPadding: EdgeInsets.zero,
-                //         backgroundColor: Colors.white.withOpacity(0.1),
-                //         content: ClipRRect(
-                //           borderRadius: borderRadius,
-                //           child: Container( 
-                //             decoration: BoxDecoration(
-                //               color: Colors.white.withOpacity(0.6),
-                //             ),      
-                //             child: Padding(
-                //               padding: const EdgeInsets.all(40),
-                //               child: YearPicker(
-                //                 config: widget.config,
-                //                 key: _yearPickerKey,
-                //                 initialMonth: _currentDisplayedMonthDate,
-                //                 selectedDates: _selectedDates.map((s) => s != null && s is ScheduledDateTime ? s.dt : null).toList(),
-                //                 onChanged: _handleYearChanged,
-                //               ),
-                //             ),
-                //           ),
-                //         ),
-                //       ),
-                //     ),
-                //     ),
-                //   ),
-                // );
               },
             ); 
             if(chosenYear != null) {
