@@ -24,8 +24,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     DateTime now = DateTime.now();
-    DateTime firstDate = DateTime(1907, 1, 1);
-    DateTime lastDate = DateTime(now.year, now.month, now.day);
+    // DateTime firstDate = DateTime(1907, 1, 1);
+    // DateTime lastDate = DateTime(now.year, now.month, now.day);
+    DateTime firstDate = DateTime(now.year, now.month, now.day);
+    DateTime lastDate = DateTime(now.year + 10, now.month, now.day);
 
     config = CalendarDatePicker2Config(
       // firstDate: DateTime(now.year - 120, now.month, now.day),
