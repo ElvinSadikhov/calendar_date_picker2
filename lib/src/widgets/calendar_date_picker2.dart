@@ -55,8 +55,10 @@ class CalendarController {
     _streamController.add(s);
   } 
 
-  void listen(Function(Scheduled? s) listener) { 
+  bool listen(Function(Scheduled? s) listener) { 
+    if(_streamController.hasListener) return false;
     _stream.listen(listener);
+    return true;
   } 
 
   void dispose() {
