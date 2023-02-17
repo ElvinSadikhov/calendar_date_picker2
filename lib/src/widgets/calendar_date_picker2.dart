@@ -1222,6 +1222,27 @@ class _MonthPickerState extends State<_MonthPicker> {
 
   final Color _greyDisabledIconColor = const Color(0xFF8D94A3); 
 
+  Widget _buildMonthToggleButton({required bool isLeft}) {
+    return GestureDetector(
+      onTap: isLeft
+        ? _isDisplayingFirstMonth ? null : _handlePreviousMonth
+        : _isDisplayingLastMonth ? null : _handleNextMonth,
+      behavior: HitTestBehavior.translucent,
+      child: SizedBox(height: 40, width: 40, 
+        child: Center(
+          child: (isLeft
+            ? widget.config.lastMonthIcon
+            : widget.config.nextMonthIcon) 
+            ?? Icon(isLeft ? Icons.arrow_back_ios : Icons.arrow_forward_ios, size: 14, 
+              color: isLeft
+                ? _isDisplayingFirstMonth ? _greyDisabledIconColor : null
+                : _isDisplayingLastMonth ? _greyDisabledIconColor : null
+            )
+        )
+      )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final Color controlColor =
@@ -1250,11 +1271,7 @@ class _MonthPickerState extends State<_MonthPicker> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    GestureDetector(
-                      onTap: _isDisplayingFirstMonth ? null : _handlePreviousMonth,
-                      behavior: HitTestBehavior.translucent,
-                      child: SizedBox(height: 14, width: 14, child: widget.config.nextMonthIcon ?? Icon(Icons.arrow_back_ios, size: 14, color: _isDisplayingFirstMonth ? _greyDisabledIconColor : null))
-                    ),
+                    _buildMonthToggleButton(isLeft: true),
                     Expanded(
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
@@ -1271,11 +1288,7 @@ class _MonthPickerState extends State<_MonthPicker> {
                         )
                       )
                     ),
-                    GestureDetector(
-                      onTap: _isDisplayingLastMonth ? null : _handleNextMonth,
-                      behavior: HitTestBehavior.translucent,
-                      child: SizedBox(height: 14, width: 14, child: widget.config.nextMonthIcon ?? Icon(Icons.arrow_forward_ios, size: 14, color: _isDisplayingLastMonth ? _greyDisabledIconColor : null))
-                    )
+                    _buildMonthToggleButton(isLeft: false),
                   ],
                 ),
               ),
