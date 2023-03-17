@@ -1,0 +1,6 @@
+# Where to find translation files
+arb-dir: lib/src/l10n
+# Which translation is the default/template
+template-arb-file: intl_en.arb
+# What to call generated dart files
+output-localization-file: app_localizations.dart

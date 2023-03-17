@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const Duration _monthScrollDuration = Duration(milliseconds: 300);
 
@@ -729,7 +730,7 @@ class _TimePickerState extends State<TimePicker> {
               textStyle: _textStyle,
               curve: Curves.easeInOut,
               wholeDigits: 2,
-              suffix: type == _TimeType.hours ? "h" : "m",  //! todo: need to add localization later
+              suffix: type == _TimeType.hours ? AppLocalizations.of(context)!.hour_short: AppLocalizations.of(context)!.minute_short,
             ), 
           ],
         ),
@@ -1934,9 +1935,9 @@ class _YearPickerState extends State<YearPicker> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildInfoBlock(),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 15),
-          child: Text("Change Year", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17 / 14, color: Color(0xFF848CA0))),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          child: Text(AppLocalizations.of(context)!.change_year, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17 / 14, color: Color(0xFF848CA0))),
         ),
         _buildYearPicker(),
         const SizedBox(height: 15),
@@ -2027,7 +2028,7 @@ class _YearPickerState extends State<YearPicker> {
     return Row(
       children: [
         PrimaryButton(
-          label: "Cancel",
+          label: AppLocalizations.of(context)!.cancel,
           buttonHeight: 40,
           buttonWidth: btnWidth,
           borderColor: const Color(0xFF375CB0),
@@ -2039,7 +2040,7 @@ class _YearPickerState extends State<YearPicker> {
         ),
         const SizedBox(width: 10),
         PrimaryButton(
-          label: "Okay",
+          label: AppLocalizations.of(context)!.okay,
           buttonHeight: 40,
           buttonWidth: btnWidth,
           borderColor: const Color(0xFF375CB0),
