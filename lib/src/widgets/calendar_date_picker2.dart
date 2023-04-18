@@ -16,8 +16,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart' as intl;
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:intl/intl.dart' as intl; 
 
 const Duration _monthScrollDuration = Duration(milliseconds: 300);
 
@@ -594,10 +593,11 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     // widget.onValueChanged?.call(_selectedDates);
   }
 
-  Widget _buildTimePicker() {
+  Widget _buildTimePicker() { 
     return Padding(
       padding: const EdgeInsets.only(top: 25),
       child: TimePicker(
+        config: widget.config,
         onChanged: _onTimeChanged, 
         initHour: widget.origInitialValue.first?.hour, 
         initMinute: widget.origInitialValue.first?.minute
@@ -618,8 +618,9 @@ class TimePicker extends StatefulWidget {
   final int? initHour;
   final int? initMinute;
   final Function(int hours, int minutes)? onChanged;
+  final CalendarDatePicker2Config config;
 
-  TimePicker({Key? key, this.onChanged, this.initHour, this.initMinute}) : super(key: key) {
+  TimePicker({Key? key, this.onChanged, this.initHour, this.initMinute, required this.config}) : super(key: key) {
     if(initHour != null)  assert(initHour! >= 0 && initHour! < 24);
     if(initMinute != null)  assert(initMinute! >= 0 && initMinute! < 60);
   }
@@ -730,7 +731,7 @@ class _TimePickerState extends State<TimePicker> {
               textStyle: _textStyle,
               curve: Curves.easeInOut,
               wholeDigits: 2,
-              suffix: type == _TimeType.hours ? AppLocalizations.of(context)!.hour_short: AppLocalizations.of(context)!.minute_short,
+              suffix: type == _TimeType.hours ? widget.config.hourShortStr: widget.config.minuteShortStr,
             ), 
           ],
         ),
@@ -1937,7 +1938,7 @@ class _YearPickerState extends State<YearPicker> {
         _buildInfoBlock(),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 15),
-          child: Text(AppLocalizations.of(context)!.change_year, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17 / 14, color: Color(0xFF848CA0))),
+          child: Text(widget.config.changeYearStr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17 / 14, color: Color(0xFF848CA0))),
         ),
         _buildYearPicker(),
         const SizedBox(height: 15),
@@ -2028,7 +2029,7 @@ class _YearPickerState extends State<YearPicker> {
     return Row(
       children: [
         PrimaryButton(
-          label: AppLocalizations.of(context)!.cancel,
+          label: widget.config.cancelStr,
           buttonHeight: 40,
           buttonWidth: btnWidth,
           borderColor: const Color(0xFF375CB0),
@@ -2040,7 +2041,7 @@ class _YearPickerState extends State<YearPicker> {
         ),
         const SizedBox(width: 10),
         PrimaryButton(
-          label: AppLocalizations.of(context)!.okay,
+          label: widget.config.okayStr,
           buttonHeight: 40,
           buttonWidth: btnWidth,
           borderColor: const Color(0xFF375CB0),

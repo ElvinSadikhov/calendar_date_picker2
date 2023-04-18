@@ -22,6 +22,11 @@ class CalendarDatePicker2Config {
     DateTime? lastDate,
     DateTime? currentDate,
     DatePickerMode? calendarViewMode,
+    this.minuteShortStr = "m", 
+    this.hourShortStr = "h", 
+    this.changeYearStr = "Change Year", 
+    this.cancelStr = "Cancel", 
+    this.okayStr = "Okay",
     this.splashRadius,
     this.weekdayLabels,
     this.weekdayLabelTextStyle,
@@ -56,6 +61,12 @@ class CalendarDatePicker2Config {
         lastDate = lastDate ?? DateTime(DateTime.now().year + 50),
         currentDate = currentDate ?? DateUtils.dateOnly(DateTime.now()),
         calendarViewMode = calendarViewMode ?? DatePickerMode.day;
+
+  final String minuteShortStr;
+  final String hourShortStr;
+  final String changeYearStr;
+  final String cancelStr;
+  final String okayStr;
 
   /// splash radius
   final double? splashRadius;
