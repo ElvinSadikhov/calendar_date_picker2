@@ -62,7 +62,20 @@ class CalendarDatePicker2Config {
     this.monthYearPanelDisabledArrowColor, 
     this.timePickerBgColor,
     this.timePickerArrowColor,
-    this.timePickerTextStyle
+    this.timePickerTextStyle,
+    this.yearPickerDialogBarrierColor,
+    this.yearPickerDialogBgColor,
+    this.yearPickerDialogChangeYearLabelTextStyle, 
+    this.yearPickerDialogInfoBlockYearTextStyle, 
+    this.yearPickerDialogInfoBlockMonthDayTextStyle, 
+    this.yearPickerDialogInfoBlockColor, 
+    this.yearPickerDialogDividerColor, 
+    this.yearPickerDialogCancelBtnBorderColor, 
+    this.yearPickerDialogCancelBtnColor, 
+    this.yearPickerDialogCancelBtnTextColor, 
+    this.yearPickerDialogOkayBtnBorderColor, 
+    this.yearPickerDialogOkayBtnColor, 
+    this.yearPickerDialogOkayBtnTextColor, 
   })  : calendarType = calendarType ?? CalendarDatePicker2Type.single,
         firstDate = firstDate ?? DateTime(1970),
         lastDate = lastDate ?? DateTime(DateTime.now().year + 50),
@@ -88,6 +101,33 @@ class CalendarDatePicker2Config {
   final Color? timePickerArrowColor; 
 
   final TextStyle? timePickerTextStyle; 
+
+  final Color? yearPickerDialogBarrierColor;
+
+  final Color? yearPickerDialogBgColor;
+
+  final TextStyle? yearPickerDialogChangeYearLabelTextStyle; 
+
+  final TextStyle? yearPickerDialogInfoBlockYearTextStyle; 
+
+  final TextStyle? yearPickerDialogInfoBlockMonthDayTextStyle;  
+
+  final Color? yearPickerDialogInfoBlockColor;
+
+  final Color? yearPickerDialogDividerColor;
+
+  final Color? yearPickerDialogCancelBtnBorderColor;
+
+  final Color? yearPickerDialogCancelBtnColor;
+
+  final Color? yearPickerDialogCancelBtnTextColor;
+
+  final Color? yearPickerDialogOkayBtnBorderColor;
+
+  final Color? yearPickerDialogOkayBtnColor;
+
+  final Color? yearPickerDialogOkayBtnTextColor;
+
 
   /// splash radius
   final double? splashRadius;

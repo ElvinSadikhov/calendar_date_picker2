@@ -383,7 +383,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
               context: context, 
               barrierDismissible: false, 
               barrierLabel: "",
-              barrierColor: Colors.white.withOpacity(0.1),
+              barrierColor: widget.config.yearPickerDialogBarrierColor ?? Colors.transparent,
               useRootNavigator: true,
               pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
               transitionDuration: const Duration(milliseconds: 300),
@@ -406,12 +406,12 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
                             shape: RoundedRectangleBorder(borderRadius: borderRadius, side: BorderSide.none),
                             insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                             contentPadding: EdgeInsets.zero,
-                            backgroundColor: Colors.white.withOpacity(0.1),
+                            backgroundColor: Colors.transparent,  
                             content: ClipRRect(
                               borderRadius: borderRadius,
                               child: Container( 
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.6),
+                                  color: widget.config.yearPickerDialogBgColor ?? Colors.white,
                                 ),      
                                 child: Padding(
                                   padding: const EdgeInsets.all(40),
@@ -1936,7 +1936,7 @@ class _YearPickerState extends State<YearPicker> {
         _buildInfoBlock(),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 15),
-          child: Text(widget.config.changeYearStr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17 / 14, color: Color(0xFF848CA0))),
+          child: Text(widget.config.changeYearStr, style: widget.config.yearPickerDialogChangeYearLabelTextStyle),
         ),
         _buildYearPicker(),
         const SizedBox(height: 15),
@@ -1956,7 +1956,7 @@ class _YearPickerState extends State<YearPicker> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          color: const Color(0xFF375CB0),
+          color: widget.config.yearPickerDialogInfoBlockColor ?? const Color(0xFF375CB0),
           width: MediaQuery.of(context).size.width,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -1964,9 +1964,9 @@ class _YearPickerState extends State<YearPicker> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.selectedDates[0]!.year.toString(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Colors.white)),
+                Text(widget.selectedDates[0]!.year.toString(), style: widget.config.yearPickerDialogInfoBlockYearTextStyle ?? null),
                 const SizedBox(height: 5),
-                Text("${intl.DateFormat.MMM(locale).format(widget.selectedDates[0]!)} ${widget.selectedDates[0]!.day}", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w400, height: 29.26 / 24, color: Colors.white)),
+                Text("${intl.DateFormat.MMM(locale).format(widget.selectedDates[0]!)} ${widget.selectedDates[0]!.day}", style: widget.config.yearPickerDialogInfoBlockMonthDayTextStyle ?? null),
               ],
             ),
           ),
@@ -2013,8 +2013,8 @@ class _YearPickerState extends State<YearPicker> {
             ),
           ),
         ),
-        const Divider(
-          color: Color(0xFFE2EAFD),
+        Divider(
+          color: widget.config.yearPickerDialogDividerColor ?? Color(0xFFE2EAFD),
           height: 1, 
         ),
       ],
@@ -2030,9 +2030,9 @@ class _YearPickerState extends State<YearPicker> {
           label: widget.config.cancelStr,
           buttonHeight: 40,
           buttonWidth: btnWidth,
-          borderColor: const Color(0xFF375CB0),
-          color: Colors.transparent,
-          textColor: const Color(0xFF375CB0),
+          borderColor: widget.config.yearPickerDialogCancelBtnBorderColor ?? const Color(0xFF375CB0),
+          color: widget.config.yearPickerDialogCancelBtnColor ?? Colors.transparent,
+          textColor: widget.config.yearPickerDialogCancelBtnTextColor ?? const Color(0xFF375CB0),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -2042,9 +2042,9 @@ class _YearPickerState extends State<YearPicker> {
           label: widget.config.okayStr,
           buttonHeight: 40,
           buttonWidth: btnWidth,
-          borderColor: const Color(0xFF375CB0),
-          color: const Color(0xFF375CB0),
-          textColor: Colors.white,
+          borderColor: widget.config.yearPickerDialogOkayBtnBorderColor ?? const Color(0xFF375CB0),
+          color: widget.config.yearPickerDialogOkayBtnColor ?? const Color(0xFF375CB0),
+          textColor: widget.config.yearPickerDialogOkayBtnTextColor ?? Colors.white,
           onPressed: () {
             Navigator.pop(context, (_selectedIndex + widget.config.firstDate.year).toString());
           },
