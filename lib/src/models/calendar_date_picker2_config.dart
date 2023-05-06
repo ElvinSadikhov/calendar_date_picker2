@@ -55,7 +55,14 @@ class CalendarDatePicker2Config {
     this.selectedWeekdayHighlightColor, 
     this.selectedWeekdayBoxShadows, 
     this.weekdayBorderRadius,
-    this.selectedWeekdayTextStyle
+    this.selectedWeekdayTextStyle,
+    this.monthYearPanelColor,
+    this.monthYearPanelTextStyle,
+    this.monthYearPanelEnabledArrowColor,
+    this.monthYearPanelDisabledArrowColor, 
+    this.timePickerBgColor,
+    this.timePickerArrowColor,
+    this.timePickerTextStyle
   })  : calendarType = calendarType ?? CalendarDatePicker2Type.single,
         firstDate = firstDate ?? DateTime(1970),
         lastDate = lastDate ?? DateTime(DateTime.now().year + 50),
@@ -67,6 +74,20 @@ class CalendarDatePicker2Config {
   final String changeYearStr;
   final String cancelStr;
   final String okayStr;
+
+  final Color? monthYearPanelColor;
+
+  final TextStyle? monthYearPanelTextStyle;
+
+  final Color? monthYearPanelEnabledArrowColor;
+
+  final Color? monthYearPanelDisabledArrowColor; 
+
+  final Color? timePickerBgColor; 
+
+  final Color? timePickerArrowColor; 
+
+  final TextStyle? timePickerTextStyle; 
 
   /// splash radius
   final double? splashRadius;

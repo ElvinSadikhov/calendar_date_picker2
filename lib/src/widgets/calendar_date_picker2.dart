@@ -700,7 +700,7 @@ class _TimePickerState extends State<TimePicker> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        color: Colors.white, 
+        color: widget.config.timePickerBgColor ?? Colors.white, 
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
           child: Column(
@@ -728,7 +728,7 @@ class _TimePickerState extends State<TimePicker> {
               value: type == _TimeType.hours 
                 ? _hours 
                 : _minutes,
-              textStyle: _textStyle,
+              textStyle: widget.config.timePickerTextStyle ?? _textStyle,
               curve: Curves.easeInOut,
               wholeDigits: 2,
               suffix: type == _TimeType.hours ? widget.config.hourShortStr: widget.config.minuteShortStr,
@@ -759,7 +759,7 @@ class _TimePickerState extends State<TimePicker> {
           _cancelLongPress();
         }
       },
-      child: Icon(direction == _ButtonDirection.up ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: const Color(0xFFCCD2E3), size: 30)
+      child: Icon(direction == _ButtonDirection.up ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: widget.config.timePickerArrowColor ??const Color(0xFFCCD2E3), size: 30)
     );
   } 
 }
@@ -1222,8 +1222,6 @@ class _MonthPickerState extends State<_MonthPicker> {
     );
   }
 
-  final Color _greyDisabledIconColor = const Color(0xFF8D94A3); 
-
   Widget _buildMonthToggleButton({required bool isLeft}) {
     return GestureDetector(
       onTap: isLeft
@@ -1237,8 +1235,8 @@ class _MonthPickerState extends State<_MonthPicker> {
             : widget.config.nextMonthIcon) 
             ?? Icon(isLeft ? Icons.arrow_back_ios : Icons.arrow_forward_ios, size: 14, 
               color: isLeft
-                ? _isDisplayingFirstMonth ? _greyDisabledIconColor : null
-                : _isDisplayingLastMonth ? _greyDisabledIconColor : null
+                ? _isDisplayingFirstMonth ? widget.config.monthYearPanelEnabledArrowColor : widget.config.monthYearPanelDisabledArrowColor
+                : _isDisplayingLastMonth ? widget.config.monthYearPanelEnabledArrowColor : widget.config.monthYearPanelDisabledArrowColor
             )
         )
       )
@@ -1259,7 +1257,7 @@ class _MonthPickerState extends State<_MonthPicker> {
             
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: widget.config.monthYearPanelColor ?? Colors.white,
                 boxShadow: [
                   BoxShadow(
                     blurRadius: 10,
@@ -1285,7 +1283,7 @@ class _MonthPickerState extends State<_MonthPicker> {
                         child: Center(
                           child: Text(
                             _localizations.formatMonthYear(_currentMonth), 
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0))
+                            style: widget.config.monthYearPanelTextStyle ?? const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0))
                           )
                         )
                       )
@@ -1572,7 +1570,7 @@ class _DayPickerState extends State<_DayPicker> {
           decoration = BoxDecoration(
             borderRadius: widget.config.dayBorderRadius,
             color: widget.config.selectedDayHighlightColor ??
-                selectedDayBackground,
+              selectedDayBackground,
             boxShadow: widget.config.selectedDayBoxShadows,
             shape: widget.config.dayBorderRadius != null
                 ? BoxShape.rectangle
