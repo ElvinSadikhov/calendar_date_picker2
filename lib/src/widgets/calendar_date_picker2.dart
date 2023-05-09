@@ -1979,8 +1979,8 @@ class _YearPickerState extends State<YearPicker> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Divider(
-          color: Color(0xFFE2EAFD),
+        Divider(
+          color: widget.config.yearPickerDialogDividerColor ?? Color(0xFFE2EAFD),
           height: 1, 
         ),
         Padding(
