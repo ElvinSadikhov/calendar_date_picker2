@@ -49,8 +49,11 @@ class CalendarController {
   }
 
   void _setData(Scheduled? s) {
-    if(_lastElement == s) return; 
-    _lastElement = s;
+    if(s != null && _lastElement != null && _lastElement!.equals(s)) {
+      debugPrint("Oops -> ${_lastElement!.toJson()} - ${s.toJson()}");
+      return; 
+    }
+    _lastElement = s?.clone();
     if(s is ScheduledDateTime)  _lastDt = s;
     _streamController.add(s);
   } 
@@ -194,7 +197,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     } 
     
     debugPrint("update");
-    widget.controller._setData(_selectedDates[0]);
+    // widget.controller._setData(_selectedDates[0]); //?
   }
 
   @override
@@ -570,7 +573,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
         }
       } else {
         this._curWeekdayIndexes.add(index);  
-      }
+      }  
     }); 
     Scheduled? s = _selectedDates[0];
     int? h;

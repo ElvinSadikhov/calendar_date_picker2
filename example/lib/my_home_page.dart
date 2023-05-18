@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     calendarController.listen((s) { 
       setState(() {
-        _singleDatePickerValueWithDefaultValue = [s];
+        _singleDatePickerValueWithDefaultValue = [s];  
         value = s.toString();
       });
     });

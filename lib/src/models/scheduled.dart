@@ -1,10 +1,16 @@
 // ignore_for_file: avoid_function_literals_in_foreach_calls
 
+import 'package:collection/collection.dart';
+
 import '../utils/date_time_parser.dart';
 
 abstract class Scheduled {
 
   Map<String, dynamic> toJson(); 
+
+  bool equals(Scheduled s);
+
+  Scheduled clone();
 
 }
  
@@ -28,6 +34,12 @@ class ScheduledDateTime extends Scheduled {
     return other is ScheduledDateTime
         && other.dt == dt;
   }
+
+  @override
+  bool equals(Scheduled s) => this == s;
+
+  @override
+  Scheduled clone() => ScheduledDateTime(dt: DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second));
 
   @override
   Map<String, dynamic> toJson() {
@@ -62,20 +74,27 @@ class ScheduledWeekDayTime extends Scheduled {
       return false;
     }
     return other is ScheduledWeekDayTime
-        && other.weekdays == weekdays
+        && const DeepCollectionEquality().equals(other.weekdays, weekdays) 
         && other.hour == hour
         && other.minute == minute;
   }
 
+  @override
+  bool equals(Scheduled s) => this == s;
+
+  @override
+  Scheduled clone() => ScheduledWeekDayTime(weekdays: weekdays.map((e) => e).toList(), hour: hour, minute: minute);
+ 
   List<DateTime> get weeklyDateTime {
     DateTime now = DateTime.now();
     DateTime dt = DateTime(now.year, now.month, now.day, hour, minute);
     final List<DateTime> res = [];
     weekdays.forEach((wd) { 
       int dayDiff = dt.weekday - wd;
-      res.add(dayDiff > 0 ? dt.add(Duration(days: dayDiff)) : dt.subtract(Duration(days: dayDiff)));
+      res.add(dt.add(Duration(days: dayDiff >= 0 ? 7 - dayDiff : -dayDiff)));
     });
-    return res;
+    res.sort((d1, d2) => d1.isAfter(d2) ? 1 : d1.isBefore(d2) ? -1 : 0);
+    return  res;
   }
 
   @override
