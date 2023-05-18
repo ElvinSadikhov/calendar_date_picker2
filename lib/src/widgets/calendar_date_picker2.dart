@@ -160,7 +160,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     _currentDisplayedMonthDate = DateTime(initialDate.year, initialDate.month);
 
     _selectedDates = widget.origInitialValue.map((v) => v != null ? ScheduledDateTime(dt: v) : null).toList(); 
-    _curWeekdayIndex = widget.origInitialValue[0]?.weekday ?? 1;  
+    _curWeekdayIndexes = [widget.origInitialValue[0]?.weekday ?? 1];  
     
     widget.controller._setData(_selectedDates[0]);
   }
@@ -177,7 +177,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       _selectedDates = _selectedDates.map((d) {
         if(d == null) return null; 
         return d is ScheduledDateTime
-          ? ScheduledWeekDayTime(weekday: _curWeekdayIndex, hour: d.dt.hour, minute: d.dt.minute)
+          ? ScheduledWeekDayTime(weekdays: _curWeekdayIndexes, hour: d.dt.hour, minute: d.dt.minute)
           : d; 
       }).toList();
     } else {
@@ -359,7 +359,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
         });
 
         if(this._selectedDates[0] != null) {
-          this._curWeekdayIndex = (this._selectedDates[0]! as ScheduledDateTime).dt.weekday;
+          this._curWeekdayIndexes = [(this._selectedDates[0]! as ScheduledDateTime).dt.weekday];
         }
         widget.controller._setData(_selectedDates[0]);
         // widget.onValueChanged?.call(_selectedDates);
@@ -512,7 +512,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     );
   }
 
-  late int _curWeekdayIndex; 
+  late List<int> _curWeekdayIndexes; 
 
   List<String> _getNormalWeekdaysOrder() {
     if(widget.config.weekdayLabels == null) return [];
@@ -534,7 +534,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: this._getNormalWeekdaysOrder().map<Widget>((wd) {
               int index = (widget.config.weekdayLabels ?? []).indexOf(wd);
-              bool isSelected = index == this._curWeekdayIndex;
+              bool isSelected = this._curWeekdayIndexes.contains(index);
               return GestureDetector(
                 onTap: () { _onWeekdayTap(isSelected: isSelected, index: index); },
                 child: Center(
@@ -562,30 +562,34 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     );
   }
 
-  void _onWeekdayTap({required bool isSelected, required int index}) {
-    if(!isSelected) {
-      setState(() {
-        this._curWeekdayIndex = index;  
-      }); 
-      Scheduled? s = _selectedDates[0];
-      int? h;
-      int? m;
-      if(s != null) {
-        h = s is ScheduledDateTime ? s.dt.hour : (s as ScheduledWeekDayTime).hour;  
-        m = s is ScheduledDateTime ? s.dt.minute : (s as ScheduledWeekDayTime).minute;  
-      } 
-      Scheduled newS = ScheduledWeekDayTime(weekday: _curWeekdayIndex, hour: h ?? 0, minute: m ?? 0);
-      _selectedDates = [newS]; 
-      widget.controller._setData(_selectedDates[0]);
-      // widget.onValueChanged?.call(_selectedDates);
-    }
+  void _onWeekdayTap({required bool isSelected, required int index}) { 
+    setState(() {
+      if(isSelected) {
+        if(this._curWeekdayIndexes.length > 1) {
+          this._curWeekdayIndexes.remove(index);  
+        }
+      } else {
+        this._curWeekdayIndexes.add(index);  
+      }
+    }); 
+    Scheduled? s = _selectedDates[0];
+    int? h;
+    int? m;
+    if(s != null) {
+      h = s is ScheduledDateTime ? s.dt.hour : (s as ScheduledWeekDayTime).hour;  
+      m = s is ScheduledDateTime ? s.dt.minute : (s as ScheduledWeekDayTime).minute;  
+    } 
+    Scheduled newS = ScheduledWeekDayTime(weekdays: _curWeekdayIndexes, hour: h ?? 0, minute: m ?? 0);
+    _selectedDates = [newS]; 
+    widget.controller._setData(_selectedDates[0]);
+    // widget.onValueChanged?.call(_selectedDates); 
   }
 
   void _onTimeChanged(int hours, int minutes) { 
     _selectedDates = _selectedDates.map((s) { 
       if(s != null) { 
         return widget.isInRepeatedMode
-          ? ScheduledWeekDayTime(weekday: _curWeekdayIndex, hour: hours, minute: minutes)
+          ? ScheduledWeekDayTime(weekdays: _curWeekdayIndexes, hour: hours, minute: minutes)
           : ScheduledDateTime(dt: DateTime((s as ScheduledDateTime).dt.year, s.dt.month, s.dt.day, hours, minutes));  
       } 
     }).toList();
