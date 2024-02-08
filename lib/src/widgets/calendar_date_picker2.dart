@@ -569,6 +569,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
   }
 
   void _onWeekdayTap({required bool isSelected, required int index}) { 
+    HapticFeedback.lightImpact();
     setState(() {
       if(isSelected) {
         if(this._curWeekdayIndexes.length > 1) {
