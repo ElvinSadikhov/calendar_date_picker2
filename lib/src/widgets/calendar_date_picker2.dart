@@ -16,8 +16,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart' as intl;
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:intl/intl.dart' as intl; 
 
 const Duration _monthScrollDuration = Duration(milliseconds: 300);
 
@@ -50,8 +49,11 @@ class CalendarController {
   }
 
   void _setData(Scheduled? s) {
-    if(_lastElement == s) return; 
-    _lastElement = s;
+    if(s != null && _lastElement != null && _lastElement!.equals(s)) {
+      debugPrint("Oops -> ${_lastElement!.toJson()} - ${s.toJson()}");
+      return; 
+    }
+    _lastElement = s?.clone();
     if(s is ScheduledDateTime)  _lastDt = s;
     _streamController.add(s);
   } 
@@ -161,7 +163,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     _currentDisplayedMonthDate = DateTime(initialDate.year, initialDate.month);
 
     _selectedDates = widget.origInitialValue.map((v) => v != null ? ScheduledDateTime(dt: v) : null).toList(); 
-    _curWeekdayIndex = widget.origInitialValue[0]?.weekday ?? 1;  
+    _curWeekdayIndexes = [widget.origInitialValue[0]?.weekday ?? 1];  
     
     widget.controller._setData(_selectedDates[0]);
   }
@@ -178,7 +180,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       _selectedDates = _selectedDates.map((d) {
         if(d == null) return null; 
         return d is ScheduledDateTime
-          ? ScheduledWeekDayTime(weekday: _curWeekdayIndex, hour: d.dt.hour, minute: d.dt.minute)
+          ? ScheduledWeekDayTime(weekdays: _curWeekdayIndexes, hour: d.dt.hour, minute: d.dt.minute)
           : d; 
       }).toList();
     } else {
@@ -195,7 +197,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     } 
     
     debugPrint("update");
-    widget.controller._setData(_selectedDates[0]);
+    // widget.controller._setData(_selectedDates[0]); //?
   }
 
   @override
@@ -360,7 +362,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
         });
 
         if(this._selectedDates[0] != null) {
-          this._curWeekdayIndex = (this._selectedDates[0]! as ScheduledDateTime).dt.weekday;
+          this._curWeekdayIndexes = [(this._selectedDates[0]! as ScheduledDateTime).dt.weekday];
         }
         widget.controller._setData(_selectedDates[0]);
         // widget.onValueChanged?.call(_selectedDates);
@@ -384,7 +386,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
               context: context, 
               barrierDismissible: false, 
               barrierLabel: "",
-              barrierColor: Colors.white.withOpacity(0.1),
+              barrierColor: widget.config.yearPickerDialogBarrierColor ?? Colors.transparent,
               useRootNavigator: true,
               pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
               transitionDuration: const Duration(milliseconds: 300),
@@ -407,12 +409,12 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
                             shape: RoundedRectangleBorder(borderRadius: borderRadius, side: BorderSide.none),
                             insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                             contentPadding: EdgeInsets.zero,
-                            backgroundColor: Colors.white.withOpacity(0.1),
+                            backgroundColor: Colors.transparent,  
                             content: ClipRRect(
                               borderRadius: borderRadius,
                               child: Container( 
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.6),
+                                  color: widget.config.yearPickerDialogBgColor ?? Colors.white,
                                 ),      
                                 child: Padding(
                                   padding: const EdgeInsets.all(40),
@@ -513,7 +515,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     );
   }
 
-  late int _curWeekdayIndex; 
+  late List<int> _curWeekdayIndexes; 
 
   List<String> _getNormalWeekdaysOrder() {
     if(widget.config.weekdayLabels == null) return [];
@@ -531,62 +533,69 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: this._getNormalWeekdaysOrder().map<Widget>((wd) {
-              int index = (widget.config.weekdayLabels ?? []).indexOf(wd);
-              bool isSelected = index == this._curWeekdayIndex;
-              return GestureDetector(
-                onTap: () { _onWeekdayTap(isSelected: isSelected, index: index); },
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7), 
-                    decoration: isSelected ? BoxDecoration(
-                      borderRadius: widget.config.weekdayBorderRadius,
-                      color: widget.config.selectedWeekdayHighlightColor,  
-                      boxShadow: widget.config.selectedWeekdayBoxShadows,
-                      shape: widget.config.weekdayBorderRadius != null
-                        ? BoxShape.rectangle
-                        : BoxShape.circle,
-                    ) : null,
-                    child: Text(
-                      wd, 
-                      style: isSelected ? widget.config.selectedWeekdayTextStyle : widget.config.weekdayLabelTextStyle
-                    ),
+          Padding(
+            padding: widget.config.weekdaysRowPadding,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: this._getNormalWeekdaysOrder().map<Widget>((wd) {
+                int index = (widget.config.weekdayLabels ?? []).indexOf(wd);
+                bool isSelected = this._curWeekdayIndexes.contains(index);
+                return GestureDetector(
+                  onTap: () { _onWeekdayTap(isSelected: isSelected, index: index); },
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7), 
+                      decoration: isSelected ? BoxDecoration(
+                        borderRadius: widget.config.weekdayBorderRadius,
+                        color: widget.config.selectedWeekdayHighlightColor,  
+                        boxShadow: widget.config.selectedWeekdayBoxShadows,
+                        shape: widget.config.weekdayBorderRadius != null
+                          ? BoxShape.rectangle
+                          : BoxShape.circle,
+                      ) : null,
+                      child: Text(
+                        wd, 
+                        style: isSelected ? widget.config.selectedWeekdayTextStyle : widget.config.weekdayLabelTextStyle
+                      ),
+                    )
                   )
-                )
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ), 
         ],
       ),
     );
   }
 
-  void _onWeekdayTap({required bool isSelected, required int index}) {
-    if(!isSelected) {
-      setState(() {
-        this._curWeekdayIndex = index;  
-      }); 
-      Scheduled? s = _selectedDates[0];
-      int? h;
-      int? m;
-      if(s != null) {
-        h = s is ScheduledDateTime ? s.dt.hour : (s as ScheduledWeekDayTime).hour;  
-        m = s is ScheduledDateTime ? s.dt.minute : (s as ScheduledWeekDayTime).minute;  
-      } 
-      Scheduled newS = ScheduledWeekDayTime(weekday: _curWeekdayIndex, hour: h ?? 0, minute: m ?? 0);
-      _selectedDates = [newS]; 
-      widget.controller._setData(_selectedDates[0]);
-      // widget.onValueChanged?.call(_selectedDates);
-    }
+  void _onWeekdayTap({required bool isSelected, required int index}) { 
+    setState(() {
+      if(isSelected) {
+        if(this._curWeekdayIndexes.length > 1) {
+          this._curWeekdayIndexes.remove(index);  
+        }
+      } else {
+        this._curWeekdayIndexes.add(index);  
+      }  
+    }); 
+    Scheduled? s = _selectedDates[0];
+    int? h;
+    int? m;
+    if(s != null) {
+      h = s is ScheduledDateTime ? s.dt.hour : (s as ScheduledWeekDayTime).hour;  
+      m = s is ScheduledDateTime ? s.dt.minute : (s as ScheduledWeekDayTime).minute;  
+    } 
+    Scheduled newS = ScheduledWeekDayTime(weekdays: _curWeekdayIndexes, hour: h ?? 0, minute: m ?? 0);
+    _selectedDates = [newS]; 
+    widget.controller._setData(_selectedDates[0]);
+    // widget.onValueChanged?.call(_selectedDates); 
   }
 
   void _onTimeChanged(int hours, int minutes) { 
     _selectedDates = _selectedDates.map((s) { 
       if(s != null) { 
         return widget.isInRepeatedMode
-          ? ScheduledWeekDayTime(weekday: _curWeekdayIndex, hour: hours, minute: minutes)
+          ? ScheduledWeekDayTime(weekdays: _curWeekdayIndexes, hour: hours, minute: minutes)
           : ScheduledDateTime(dt: DateTime((s as ScheduledDateTime).dt.year, s.dt.month, s.dt.day, hours, minutes));  
       } 
     }).toList();
@@ -594,10 +603,11 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     // widget.onValueChanged?.call(_selectedDates);
   }
 
-  Widget _buildTimePicker() {
+  Widget _buildTimePicker() { 
     return Padding(
       padding: const EdgeInsets.only(top: 25),
       child: TimePicker(
+        config: widget.config,
         onChanged: _onTimeChanged, 
         initHour: widget.origInitialValue.first?.hour, 
         initMinute: widget.origInitialValue.first?.minute
@@ -618,8 +628,9 @@ class TimePicker extends StatefulWidget {
   final int? initHour;
   final int? initMinute;
   final Function(int hours, int minutes)? onChanged;
+  final CalendarDatePicker2Config config;
 
-  TimePicker({Key? key, this.onChanged, this.initHour, this.initMinute}) : super(key: key) {
+  TimePicker({Key? key, this.onChanged, this.initHour, this.initMinute, required this.config}) : super(key: key) {
     if(initHour != null)  assert(initHour! >= 0 && initHour! < 24);
     if(initMinute != null)  assert(initMinute! >= 0 && initMinute! < 60);
   }
@@ -699,7 +710,7 @@ class _TimePickerState extends State<TimePicker> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        color: Colors.white, 
+        color: widget.config.timePickerBgColor ?? Colors.white, 
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
           child: Column(
@@ -727,10 +738,10 @@ class _TimePickerState extends State<TimePicker> {
               value: type == _TimeType.hours 
                 ? _hours 
                 : _minutes,
-              textStyle: _textStyle,
+              textStyle: widget.config.timePickerTextStyle ?? _textStyle,
               curve: Curves.easeInOut,
               wholeDigits: 2,
-              suffix: type == _TimeType.hours ? AppLocalizations.of(context)!.hour_short: AppLocalizations.of(context)!.minute_short,
+              suffix: type == _TimeType.hours ? widget.config.hourShortStr: widget.config.minuteShortStr,
             ), 
           ],
         ),
@@ -758,7 +769,7 @@ class _TimePickerState extends State<TimePicker> {
           _cancelLongPress();
         }
       },
-      child: Icon(direction == _ButtonDirection.up ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: const Color(0xFFCCD2E3), size: 30)
+      child: Icon(direction == _ButtonDirection.up ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: widget.config.timePickerArrowColor ??const Color(0xFFCCD2E3), size: 30)
     );
   } 
 }
@@ -1221,8 +1232,6 @@ class _MonthPickerState extends State<_MonthPicker> {
     );
   }
 
-  final Color _greyDisabledIconColor = const Color(0xFF8D94A3); 
-
   Widget _buildMonthToggleButton({required bool isLeft}) {
     return GestureDetector(
       onTap: isLeft
@@ -1236,8 +1245,8 @@ class _MonthPickerState extends State<_MonthPicker> {
             : widget.config.nextMonthIcon) 
             ?? Icon(isLeft ? Icons.arrow_back_ios : Icons.arrow_forward_ios, size: 14, 
               color: isLeft
-                ? _isDisplayingFirstMonth ? _greyDisabledIconColor : null
-                : _isDisplayingLastMonth ? _greyDisabledIconColor : null
+                ? _isDisplayingFirstMonth ? widget.config.monthYearPanelEnabledArrowColor : widget.config.monthYearPanelDisabledArrowColor
+                : _isDisplayingLastMonth ? widget.config.monthYearPanelEnabledArrowColor : widget.config.monthYearPanelDisabledArrowColor
             )
         )
       )
@@ -1258,7 +1267,7 @@ class _MonthPickerState extends State<_MonthPicker> {
             
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: widget.config.monthYearPanelColor ?? Colors.white,
                 boxShadow: [
                   BoxShadow(
                     blurRadius: 10,
@@ -1284,7 +1293,7 @@ class _MonthPickerState extends State<_MonthPicker> {
                         child: Center(
                           child: Text(
                             _localizations.formatMonthYear(_currentMonth), 
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0))
+                            style: widget.config.monthYearPanelTextStyle ?? const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0))
                           )
                         )
                       )
@@ -1571,7 +1580,7 @@ class _DayPickerState extends State<_DayPicker> {
           decoration = BoxDecoration(
             borderRadius: widget.config.dayBorderRadius,
             color: widget.config.selectedDayHighlightColor ??
-                selectedDayBackground,
+              selectedDayBackground,
             boxShadow: widget.config.selectedDayBoxShadows,
             shape: widget.config.dayBorderRadius != null
                 ? BoxShape.rectangle
@@ -1937,7 +1946,7 @@ class _YearPickerState extends State<YearPicker> {
         _buildInfoBlock(),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 15),
-          child: Text(AppLocalizations.of(context)!.change_year, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17 / 14, color: Color(0xFF848CA0))),
+          child: Text(widget.config.changeYearStr, style: widget.config.yearPickerDialogChangeYearLabelTextStyle),
         ),
         _buildYearPicker(),
         const SizedBox(height: 15),
@@ -1957,7 +1966,7 @@ class _YearPickerState extends State<YearPicker> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          color: const Color(0xFF375CB0),
+          color: widget.config.yearPickerDialogInfoBlockColor ?? const Color(0xFF375CB0),
           width: MediaQuery.of(context).size.width,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -1965,9 +1974,9 @@ class _YearPickerState extends State<YearPicker> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.selectedDates[0]!.year.toString(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Colors.white)),
+                Text(widget.selectedDates[0]!.year.toString(), style: widget.config.yearPickerDialogInfoBlockYearTextStyle ?? null),
                 const SizedBox(height: 5),
-                Text("${intl.DateFormat.MMM(locale).format(widget.selectedDates[0]!)} ${widget.selectedDates[0]!.day}", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w400, height: 29.26 / 24, color: Colors.white)),
+                Text("${intl.DateFormat.MMM(locale).format(widget.selectedDates[0]!)} ${widget.selectedDates[0]!.day}", style: widget.config.yearPickerDialogInfoBlockMonthDayTextStyle ?? null),
               ],
             ),
           ),
@@ -1980,8 +1989,8 @@ class _YearPickerState extends State<YearPicker> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Divider(
-          color: Color(0xFFE2EAFD),
+        Divider(
+          color: widget.config.yearPickerDialogDividerColor ?? Color(0xFFE2EAFD),
           height: 1, 
         ),
         Padding(
@@ -2014,8 +2023,8 @@ class _YearPickerState extends State<YearPicker> {
             ),
           ),
         ),
-        const Divider(
-          color: Color(0xFFE2EAFD),
+        Divider(
+          color: widget.config.yearPickerDialogDividerColor ?? Color(0xFFE2EAFD),
           height: 1, 
         ),
       ],
@@ -2028,24 +2037,24 @@ class _YearPickerState extends State<YearPicker> {
     return Row(
       children: [
         PrimaryButton(
-          label: AppLocalizations.of(context)!.cancel,
+          label: widget.config.cancelStr,
           buttonHeight: 40,
           buttonWidth: btnWidth,
-          borderColor: const Color(0xFF375CB0),
-          color: Colors.transparent,
-          textColor: const Color(0xFF375CB0),
+          borderColor: widget.config.yearPickerDialogCancelBtnBorderColor ?? const Color(0xFF375CB0),
+          color: widget.config.yearPickerDialogCancelBtnColor ?? Colors.transparent,
+          textColor: widget.config.yearPickerDialogCancelBtnTextColor ?? const Color(0xFF375CB0),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         const SizedBox(width: 10),
         PrimaryButton(
-          label: AppLocalizations.of(context)!.okay,
+          label: widget.config.okayStr,
           buttonHeight: 40,
           buttonWidth: btnWidth,
-          borderColor: const Color(0xFF375CB0),
-          color: const Color(0xFF375CB0),
-          textColor: Colors.white,
+          borderColor: widget.config.yearPickerDialogOkayBtnBorderColor ?? const Color(0xFF375CB0),
+          color: widget.config.yearPickerDialogOkayBtnColor ?? const Color(0xFF375CB0),
+          textColor: widget.config.yearPickerDialogOkayBtnTextColor ?? Colors.white,
           onPressed: () {
             Navigator.pop(context, (_selectedIndex + widget.config.firstDate.year).toString());
           },

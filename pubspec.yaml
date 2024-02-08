@@ -10,12 +10,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_localizations:
-    sdk: flutter
-  vertical_picker: ^0.0.1
+  vertical_picker: ^0.0.1 
   intl: ^0.17.0
   after_layout: ^1.2.0
   animated_flip_counter: ^0.2.5
+  collection: any
 
 dev_dependencies:
   flutter_test:

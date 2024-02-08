@@ -22,6 +22,11 @@ class CalendarDatePicker2Config {
     DateTime? lastDate,
     DateTime? currentDate,
     DatePickerMode? calendarViewMode,
+    this.minuteShortStr = "m", 
+    this.hourShortStr = "h", 
+    this.changeYearStr = "Change Year", 
+    this.cancelStr = "Cancel", 
+    this.okayStr = "Okay",
     this.splashRadius,
     this.weekdayLabels,
     this.weekdayLabelTextStyle,
@@ -50,12 +55,82 @@ class CalendarDatePicker2Config {
     this.selectedWeekdayHighlightColor, 
     this.selectedWeekdayBoxShadows, 
     this.weekdayBorderRadius,
-    this.selectedWeekdayTextStyle
+    this.selectedWeekdayTextStyle,
+    this.monthYearPanelColor,
+    this.monthYearPanelTextStyle,
+    this.monthYearPanelEnabledArrowColor,
+    this.monthYearPanelDisabledArrowColor, 
+    this.timePickerBgColor,
+    this.timePickerArrowColor,
+    this.timePickerTextStyle,
+    this.yearPickerDialogBarrierColor,
+    this.yearPickerDialogBgColor,
+    this.yearPickerDialogChangeYearLabelTextStyle, 
+    this.yearPickerDialogInfoBlockYearTextStyle, 
+    this.yearPickerDialogInfoBlockMonthDayTextStyle, 
+    this.yearPickerDialogInfoBlockColor, 
+    this.yearPickerDialogDividerColor, 
+    this.yearPickerDialogCancelBtnBorderColor, 
+    this.yearPickerDialogCancelBtnColor, 
+    this.yearPickerDialogCancelBtnTextColor, 
+    this.yearPickerDialogOkayBtnBorderColor, 
+    this.yearPickerDialogOkayBtnColor, 
+    this.yearPickerDialogOkayBtnTextColor, 
+    this.weekdaysRowPadding = const EdgeInsets.symmetric(vertical: 8), 
   })  : calendarType = calendarType ?? CalendarDatePicker2Type.single,
         firstDate = firstDate ?? DateTime(1970),
         lastDate = lastDate ?? DateTime(DateTime.now().year + 50),
         currentDate = currentDate ?? DateUtils.dateOnly(DateTime.now()),
         calendarViewMode = calendarViewMode ?? DatePickerMode.day;
+
+  final String minuteShortStr;
+  final String hourShortStr;
+  final String changeYearStr;
+  final String cancelStr;
+  final String okayStr;
+
+  final Color? monthYearPanelColor;
+
+  final TextStyle? monthYearPanelTextStyle;
+
+  final Color? monthYearPanelEnabledArrowColor;
+
+  final Color? monthYearPanelDisabledArrowColor; 
+
+  final Color? timePickerBgColor; 
+
+  final Color? timePickerArrowColor; 
+
+  final TextStyle? timePickerTextStyle; 
+
+  final Color? yearPickerDialogBarrierColor;
+
+  final Color? yearPickerDialogBgColor;
+
+  final TextStyle? yearPickerDialogChangeYearLabelTextStyle; 
+
+  final TextStyle? yearPickerDialogInfoBlockYearTextStyle; 
+
+  final TextStyle? yearPickerDialogInfoBlockMonthDayTextStyle;  
+
+  final Color? yearPickerDialogInfoBlockColor;
+
+  final Color? yearPickerDialogDividerColor;
+
+  final Color? yearPickerDialogCancelBtnBorderColor;
+
+  final Color? yearPickerDialogCancelBtnColor;
+
+  final Color? yearPickerDialogCancelBtnTextColor;
+
+  final Color? yearPickerDialogOkayBtnBorderColor;
+
+  final Color? yearPickerDialogOkayBtnColor;
+
+  final Color? yearPickerDialogOkayBtnTextColor;
+
+  final EdgeInsets weekdaysRowPadding;
+
 
   /// splash radius
   final double? splashRadius;

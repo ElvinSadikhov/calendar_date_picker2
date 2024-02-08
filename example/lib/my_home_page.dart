@@ -48,7 +48,8 @@ class _MyHomePageState extends State<MyHomePage> {
       selectedDayHighlightColor: Colors.white.withOpacity(0.8),
       selectedDayBoxShadows: [BoxShadow(blurRadius: 5, color: Colors.black.withOpacity(0.05))],
       selectedWeekdayHighlightColor: Colors.white.withOpacity(0.8),
-      selectedWeekdayBoxShadows: [BoxShadow(blurRadius: 5, color: Colors.black.withOpacity(0.05))],
+      selectedWeekdayBoxShadows: [BoxShadow(blurRadius: 10, color: Colors.black.withOpacity(0.08))],
+      weekdaysRowPadding: const EdgeInsets.symmetric(vertical: 12),
       todayHighlightColor: Colors.transparent,
       // todayTextStyle: ,
       pastOrFutureDaysTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, height: 17.07 / 14, color: Color(0xFF848CA0)),
@@ -61,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     calendarController.listen((s) { 
       setState(() {
-        _singleDatePickerValueWithDefaultValue = [s];
+        _singleDatePickerValueWithDefaultValue = [s];  
         value = s.toString();
       });
     });
@@ -98,12 +99,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CalendarDatePicker2(
-          controller: calendarController,
-          config: config,
-          initialValue: _singleDatePickerValueWithDefaultValue, 
-          includeTimePicker: true,
-          isInRepeatedMode: _isInRepeatedMode
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: CalendarDatePicker2(
+            controller: calendarController,
+            config: config,
+            initialValue: _singleDatePickerValueWithDefaultValue, 
+            includeTimePicker: true,
+            isInRepeatedMode: _isInRepeatedMode
+          ),
         ), 
         const SizedBox(height: 25),
         ElevatedButton(onPressed: () { setState(() {
