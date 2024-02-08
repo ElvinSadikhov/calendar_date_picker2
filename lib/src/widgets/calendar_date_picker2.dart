@@ -533,32 +533,35 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: this._getNormalWeekdaysOrder().map<Widget>((wd) {
-              int index = (widget.config.weekdayLabels ?? []).indexOf(wd);
-              bool isSelected = this._curWeekdayIndexes.contains(index);
-              return GestureDetector(
-                onTap: () { _onWeekdayTap(isSelected: isSelected, index: index); },
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7), 
-                    decoration: isSelected ? BoxDecoration(
-                      borderRadius: widget.config.weekdayBorderRadius,
-                      color: widget.config.selectedWeekdayHighlightColor,  
-                      boxShadow: widget.config.selectedWeekdayBoxShadows,
-                      shape: widget.config.weekdayBorderRadius != null
-                        ? BoxShape.rectangle
-                        : BoxShape.circle,
-                    ) : null,
-                    child: Text(
-                      wd, 
-                      style: isSelected ? widget.config.selectedWeekdayTextStyle : widget.config.weekdayLabelTextStyle
-                    ),
+          Padding(
+            padding: widget.config.weekdaysRowPadding,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: this._getNormalWeekdaysOrder().map<Widget>((wd) {
+                int index = (widget.config.weekdayLabels ?? []).indexOf(wd);
+                bool isSelected = this._curWeekdayIndexes.contains(index);
+                return GestureDetector(
+                  onTap: () { _onWeekdayTap(isSelected: isSelected, index: index); },
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7), 
+                      decoration: isSelected ? BoxDecoration(
+                        borderRadius: widget.config.weekdayBorderRadius,
+                        color: widget.config.selectedWeekdayHighlightColor,  
+                        boxShadow: widget.config.selectedWeekdayBoxShadows,
+                        shape: widget.config.weekdayBorderRadius != null
+                          ? BoxShape.rectangle
+                          : BoxShape.circle,
+                      ) : null,
+                      child: Text(
+                        wd, 
+                        style: isSelected ? widget.config.selectedWeekdayTextStyle : widget.config.weekdayLabelTextStyle
+                      ),
+                    )
                   )
-                )
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ), 
         ],
       ),

@@ -76,6 +76,7 @@ class CalendarDatePicker2Config {
     this.yearPickerDialogOkayBtnBorderColor, 
     this.yearPickerDialogOkayBtnColor, 
     this.yearPickerDialogOkayBtnTextColor, 
+    this.weekdaysRowPadding = const EdgeInsets.symmetric(vertical: 8), 
   })  : calendarType = calendarType ?? CalendarDatePicker2Type.single,
         firstDate = firstDate ?? DateTime(1970),
         lastDate = lastDate ?? DateTime(DateTime.now().year + 50),
@@ -127,6 +128,8 @@ class CalendarDatePicker2Config {
   final Color? yearPickerDialogOkayBtnColor;
 
   final Color? yearPickerDialogOkayBtnTextColor;
+
+  final EdgeInsets weekdaysRowPadding;
 
 
   /// splash radius
