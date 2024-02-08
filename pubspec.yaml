@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   vertical_picker: ^0.0.1 
-  intl: ^0.17.0
+  intl: ^0.18.0
   after_layout: ^1.2.0
   animated_flip_counter: ^0.2.5
   collection: any
